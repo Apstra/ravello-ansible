@@ -1,0 +1,94 @@
+{
+{% set vmtype = hostvars[inventory_hostname]['image'] %}
+    "baseVmId": {{ vm.msg.baseVmId }},
+    "name" : "{{ inventory_hostname }}",
+    "description": "{{ inventory_hostname }}",
+    "applicationId": {{ vm.msg.applicationId }},
+    "legacyMode": false,
+    "loadingPercentage": 100,
+    "loadingStatus": "DONE",
+    "vmOrderGroupId": 1,
+    "creationTime": {{ vm.msg.creationTime }},
+    "id": {{ vm.msg.id }},
+    "stopTimeOut": 600,
+    "powerOffOnStopTimeOut" : false,
+{% if ravello_key_pair is defined %}
+    "supportsCloudInit": true,
+    "keypairId": {{ keypair.json.id }},
+    "keypairName": "{{ keypair.json.name }}",
+    "configNetworkUsingCloudInit": false,
+    "configurationManagement": {
+      "configNetworkUsingCloudInit": false
+    },
+{% endif %}
+    "memorySize": {
+      "unit": "GB",
+      "value": {{ vm.msg.memorySize.value }}
+    },
+    "numCpus": {{ vm.msg.numCpus }},
+    "hardDrives": [
+{% for drive in vm.msg.hardDrives -%}
+      {
+{% if drive.boot == True %}
+          "boot": true,
+{% else %}
+          "boot": false,
+{% endif %}
+          "controller": "{{ drive.controller }}",
+          "controllerIndex": {{ drive.controllerIndex }},
+          "id": {{ drive.id }},
+          "imageFetchMode": "{{ drive.imageFetchMode }}",
+          "index": {{ drive.index }},
+          "loadingPercentage": {{ drive.loadingPercentage }},
+          "loadingStatus": "{{ drive.loadingStatus }}",
+{% if drive.name is defined %}
+            "name": "{{ drive.name }}",
+{% endif %}
+            "size": {
+                "unit": "{{ drive.size.unit }}",
+                "value": {{ drive.size.value }}
+            },
+            "type": "{{ drive.type }}"
+        }
+        {% if not loop.last %},{% endif %}
+        {%- endfor %}
+      ],
+      "networkConnections": [
+{% for conn in topology[inventory_hostname] -%}
+{% set int_index = loop.index - 1 %}
+         {
+            "accessPort": true,
+            "name" : "{{ "em" ~ int_index }}",
+            "device": {
+               "deviceType": "{{ conn.type | default(ravello.nic_type) }}",
+               "index": {{ loop.index }},
+               "useAutomaticMac": true
+            },
+            "ipConfig": {
+{% if not conn %}
+                "autoIpConfig": {},
+                "hasPublicIp": false,
+{% elif conn.link == "dhcp-public" %}
+                "autoIpConfig": {},
+                "hasPublicIp": true,
+{% else %}
+                "staticIpConfig": {
+                  "ip": "{{ ravlinks[conn.link] }}{{ hostvars[inventory_hostname].id }}",
+                  "mask": "{{ ravello.create_topology.mask }}"
+                }
+{% endif %}
+            }
+         }{% if not loop.last %},{% endif %}
+{%- endfor %}
+      ]
+    {% if vmtype != 'vqfx_pfe' and vmtype != 'vfpc' %}
+      ,"suppliedServices": [
+        {
+            "external": true,
+            "name": "ssh",
+            "portRange": "22",
+            "protocol": "SSH"
+        }
+      ]
+    {% endif %}
+}

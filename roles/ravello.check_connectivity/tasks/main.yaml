@@ -1,0 +1,44 @@
+---
+
+
+###############################
+## Get Application ID       ###
+###############################
+    - name: Get App ID from Ravello
+      ravello_get_app:
+        application_name: "{{ ravello.app_name }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: app
+      run_once: true
+
+###############################
+## Get VM ID       ###
+###############################
+    - name: Get VM ID from Ravello
+      ravello_get_vm:
+        application_id: "{{ app.json.id }}"
+        vm_name: "{{ inventory_hostname }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: vm
+
+###############################
+##  Check VM Connectivity    ##
+###############################
+    - name: Get VM public FQDN
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/fqdn;deployment"
+        method: GET
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+      register: ravello_public_ip
+
+    # - debug: var=fqdn.json.value
+
+    - name: Check ssh connectivity
+      wait_for: host={{ ravello_public_ip.json.value }} port=22 timeout=5

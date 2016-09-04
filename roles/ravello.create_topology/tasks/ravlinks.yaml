@@ -1,0 +1,7 @@
+
+- hosts: all
+  connection: local
+  gather_facts: no
+  tasks:
+    - template: src=../templates/links.j2 dest=/tmp/ravlinks.yaml
+      run_once: true

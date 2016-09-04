@@ -1,0 +1,86 @@
+---
+###############################
+## Check tmp dir
+###############################
+    - name: Create tmp directory
+      file: path={{ ravello.tmp_dir }} state=directory
+      run_once: True
+
+######################################
+## Get baseVMid Number from Ravello
+######################################
+    - name: Get Image ID from Ravello
+      ravello_get_image:
+        image_name: "{{ ravello_image }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: image
+  #   - debug: var=images
+
+######################################
+## Get id for Keypair from Ravello
+######################################
+    - name: Get Key Pair ID from Ravello
+      ravello_get_keypair:
+        keypair_name: "{{ ravello_key_pair }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: keypair
+      when: ravello_key_pair is defined
+
+###############################
+##  Create the application   ##
+###############################
+    - name: Render Template for Application
+      template: src=create_blank_app.json.j2 dest={{ ravello.tmp_dir }}/create_blank_app.json
+      run_once: true
+
+    - name: Create Application on Ravello
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications"
+        method: POST
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 201
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body: "{{ lookup('file' , '{{ ravello.tmp_dir }}/create_blank_app.json') }}"
+        body_format: json
+      register: app
+      run_once: true
+      changed_when: true
+
+#################################
+## Add VMs to the application  ##
+#################################
+    - name: Add VM to Application
+      ravello_addvm:
+        appId: "{{ app.json.id }}"
+        baseVmId: "{{ image.json.baseVmId }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: vm
+#    - debug: var=vm
+
+#################################
+##   Update Network Topology   ##
+#################################
+    - name: Render Template to Update VM
+      template: src=update_vm.json.j2 dest={{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json
+      when: topology[inventory_hostname] is defined
+
+    - name: Update VM in Application
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.msg.id }}"
+        method: PUT
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body: "{{ lookup('file' , '{{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json') }}"
+        body_format: json
+      when: topology[inventory_hostname] is defined
+      changed_when: true

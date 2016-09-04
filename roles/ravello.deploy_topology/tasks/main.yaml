@@ -1,0 +1,70 @@
+---
+###############################
+## Check tmp dir
+###############################
+    - name: Create tmp directory
+      file: path={{ ravello.tmp_dir }} state=directory
+      run_once: True
+
+###############################
+## Get Application ID       ###
+###############################
+    - name: Get App ID from Ravello
+      ravello_get_app:
+        application_name: "{{ ravello.app_name }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: app
+      run_once: true
+
+    # - debug: var=app
+    #   run_once: true
+
+###############################
+##  Deploy the application   ##
+###############################
+    - name: Render Template to deploy Application
+      template: src=deploy_app.json.j2 dest={{ ravello.tmp_dir }}/deploy_app.json
+      run_once: true
+
+    - name: Deploy Ravello Application
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/publish"
+        method: POST
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 202
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body: "{{ lookup('file' , '{{ ravello.tmp_dir }}/deploy_app.json') }}"
+        body_format: json
+      run_once: true
+      # register: deploy
+      when: not app.json.published
+
+#################################
+## Launch VMs one by one       ##
+#################################
+    - name: Get VM ID from Ravello
+      ravello_get_vm:
+        application_id: "{{ app.json.id }}"
+        vm_name: "{{ inventory_hostname }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: vm
+
+#    - debug: var=vm
+
+    - name: Start VM
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
+        method: POST
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 202
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+      changed_when: true
+      #register: update

@@ -54,7 +54,7 @@
         {%- endfor %}
       ],
       "networkConnections": [
-{% for conn in topology[inventory_hostname] -%}
+{% for conn in ravello_topology[inventory_hostname] -%}
 {% set int_index = loop.index - 1 %}
          {
             "accessPort": true,

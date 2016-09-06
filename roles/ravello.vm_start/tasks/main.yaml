@@ -43,6 +43,28 @@
       # register: deploy
       when: not app.json.published
 
+########################################
+##  Set application Expiration time   ##
+########################################
+
+    - name: Set Application Expiration time
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/setExpiration"
+        method: POST
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body: '{  "expirationFromNowSeconds": {{ ravello.expiration_time_min * 60 }} }'
+        body_format: json
+      run_once: true
+      # register: deploy
+      when: not app.json.published
+
+
+
 #################################
 ## Launch VMs one by one       ##
 #################################

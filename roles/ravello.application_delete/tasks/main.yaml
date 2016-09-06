@@ -1,0 +1,29 @@
+---
+###############################
+## Get Application ID       ###
+###############################
+    - name: Get App ID from Ravello
+      ravello_get_app:
+        application_name: "{{ ravello.app_name }}"
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+      register: app
+      run_once: true
+
+###############################
+##  Delete the application   ##
+###############################
+
+    - name: Delete Application on Ravello
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}"
+        method: DELETE
+        user: "{{ login.username }}"
+        password: "{{ login.password }}"
+        force_basic_auth: yes
+        status_code: 204
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+      register: app
+      run_once: true
+      changed_when: true

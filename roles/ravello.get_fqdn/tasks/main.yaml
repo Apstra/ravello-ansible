@@ -41,4 +41,8 @@
     # - debug: var=fqdn.json.value
 
     - name: Check ssh connectivity
-      wait_for: host={{ ravello_public_ip.json.value }} port=22 timeout=5
+      wait_for:
+        host: "{{ ravello_public_ip.json.value }} "
+        port: "{{ ravello.connectivity_port }}"
+        timeout: "{{ ravello.connectivity_timeout }}"
+      when: ravello.connectivity_check == true

@@ -10,6 +10,10 @@ With these roles, it's possible to:
 - Delete an application
 - Collect all public IP addresses
 
+# How to use these roles
+
+You can reference to this projet as an example: [https://github.com/dgarros/rav-ipfabric-demo](https://github.com/dgarros/rav-ipfabric-demo)
+
 # Documentation
 
 Please, visit the [main documentation](http://ravello-ansible.readthedocs.io)

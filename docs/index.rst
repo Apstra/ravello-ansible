@@ -1,6 +1,14 @@
 Welcome to Ansible Roles for Ravello's documentation!
 =====================================================
 
+This project include severals roles for Ansible to manage Ravello applications.
+
+With these roles, it's possible to:
+- Create an application dynamically
+- Start VM
+- Delete an application
+- Collect all public IP addresses
+
 Contents:
 
 .. toctree::

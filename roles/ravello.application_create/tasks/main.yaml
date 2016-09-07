@@ -12,8 +12,8 @@
     - name: Get Image ID from Ravello
       ravello_get_image:
         image_name: "{{ ravello_image }}"
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
       register: image
   #   - debug: var=images
 
@@ -23,8 +23,8 @@
     - name: Get Key Pair ID from Ravello
       ravello_get_keypair:
         keypair_name: "{{ ravello_key_pair }}"
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
       register: keypair
       when: ravello_key_pair is defined
 
@@ -39,8 +39,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications"
         method: POST
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
         force_basic_auth: yes
         status_code: 201
         HEADER_Content-Type: 'application/json'
@@ -58,8 +58,8 @@
       ravello_addvm:
         appId: "{{ app.json.id }}"
         baseVmId: "{{ image.json.baseVmId }}"
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
       register: vm
 #    - debug: var=vm
 
@@ -74,8 +74,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.msg.id }}"
         method: PUT
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'

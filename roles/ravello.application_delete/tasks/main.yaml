@@ -5,8 +5,8 @@
     - name: Get App ID from Ravello
       ravello_get_app:
         application_name: "{{ ravello.app_name }}"
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
       register: app
       run_once: true
 
@@ -18,8 +18,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}"
         method: DELETE
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
         force_basic_auth: yes
         status_code: 204
         HEADER_Content-Type: 'application/json'

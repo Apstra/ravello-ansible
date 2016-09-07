@@ -23,3 +23,16 @@ Ansible can have multiple configuration file [add link to ansible doc]
 
 .. IMPORTANT::
   When you define the variable roles_path you need to redefine the default location as well
+
+Define Ravello credentials
+--------------------------
+
+It's mandatory to provide your ravello credentials.
+It's recommanded to create a variable file dedicated for that under the ``group_vars/all`` directory
+
+.. code-block:: yaml
+
+    # group_vars/all/credentials.yaml
+    ravello_login:
+      username: user@email.com
+      password: xxxyyy

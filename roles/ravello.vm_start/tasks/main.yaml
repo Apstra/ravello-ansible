@@ -12,8 +12,8 @@
     - name: Get App ID from Ravello
       ravello_get_app:
         application_name: "{{ ravello.app_name }}"
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
       register: app
       run_once: true
 
@@ -31,8 +31,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/publish"
         method: POST
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
         force_basic_auth: yes
         status_code: 202
         HEADER_Content-Type: 'application/json'
@@ -51,8 +51,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/setExpiration"
         method: POST
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
@@ -72,8 +72,8 @@
       ravello_get_vm:
         application_id: "{{ app.json.id }}"
         vm_name: "{{ inventory_hostname }}"
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
       register: vm
 
 #    - debug: var=vm
@@ -82,8 +82,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
         method: POST
-        user: "{{ login.username }}"
-        password: "{{ login.password }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
         force_basic_auth: yes
         status_code: 202
         HEADER_Content-Type: 'application/json'

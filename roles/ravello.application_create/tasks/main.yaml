@@ -68,7 +68,7 @@
 #################################
     - name: Render Template to Update VM
       template: src=update_vm.json.j2 dest={{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json
-      when: topology[inventory_hostname] is defined
+      when: ravello_topology[inventory_hostname] is defined
 
     - name: Update VM in Application
       uri:
@@ -82,5 +82,5 @@
         HEADER_Accept: 'application/json'
         body: "{{ lookup('file' , '{{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json') }}"
         body_format: json
-      when: topology[inventory_hostname] is defined
+      when: ravello_topology[inventory_hostname] is defined
       changed_when: true

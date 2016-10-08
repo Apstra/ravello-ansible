@@ -24,6 +24,13 @@ Ansible can have multiple configuration file [add link to ansible doc]
 .. IMPORTANT::
   When you define the variable roles_path you need to redefine the default location as well
 
+Install python dependancies
+---------------------------
+
+.. code-block:: text
+
+    pip install requests httplib2
+
 Define Ravello credentials
 --------------------------
 

@@ -1,0 +1,188 @@
+---
+###############################
+## Get Application ID       ###
+###############################
+    - name: Get Blueprint ID from Ravello
+      ravello_get_blueprint:
+        blueprint_name: "{{ ravello.blueprint }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+      register: bp
+      run_once: true
+      tags: [ create ]
+
+    # - debug: var=bp
+    #   tags: [ create, debug ]
+
+#####################################################
+##  Create multiple application from Blueprint     ##
+#####################################################
+
+    - name: Create Applications from Blueprint
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/"
+        method: POST
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+        force_basic_auth: yes
+        status_code: 201
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body:
+          name: "{{ item.app_name }}"
+          description: "app created by ansible"
+          baseBlueprintId: "{{ bp.json.id }}"
+        body_format: json
+      run_once: true
+      changed_when: true
+      register: apps
+      with_items: "{{ ravello.app_list }}"
+      tags: [ create ]
+
+###############################
+## Get Application ID       ###
+###############################
+    - name: Get App ID from Ravello for each App
+      ravello_get_app:
+        application_name: "{{ item.app_name }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+      register: apps
+      run_once: true
+      with_items: "{{ ravello.app_list }}"
+      tags: [ deploy, fqdn ]
+
+    # - debug: var=apps
+    #   run_once: true
+    #   tags: [ deploy, debug, fqdn ]
+
+#######################################################
+##  Deploy Application(s)                            ##
+#######################################################
+    - name: Deploy Ravello Application(s)
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/publish"
+        method: POST
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+        force_basic_auth: yes
+        status_code: 202
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body:
+          preferredCloud": "{{ ravello.deploy_topology.cloud }}"
+          preferredRegion": "{{ ravello.deploy_topology.region }}"
+          optimizationLevel": "{{ ravello.deploy_topology.optimization }}"
+          startAllVms": "{{ ravello.deploy_topology.start_all }}"
+        body_format: json
+      run_once: true
+      when: not item.json.published
+      with_items: "{{ apps.results }}"
+      tags: [ deploy ]
+
+########################################
+##  Set application Expiration time   ##
+########################################
+    - name: Set Application Expiration time
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/setExpiration"
+        method: POST
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+        force_basic_auth: yes
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        body: '{  "expirationFromNowSeconds": {{ ravello.expiration_time_min * 60 }} }'
+        body_format: json
+      run_once: true
+      # register: deploy
+      when: not item.json.published
+      with_items: "{{ apps.results }}"
+      tags: [ deploy ]
+
+###############################
+## Get VM ID       ###
+###############################
+    - name: Get VM ID from Ravello
+      ravello_get_vm:
+        application_id: "{{ item.json.id }}"
+        vm_name: "{{ inventory_hostname }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+      register: vms
+      with_items: "{{ apps.results }}"
+      tags: [ deploy, fqdn ]
+
+# #################################
+# ## Launch VMs one by one       ##
+# #################################
+
+#     - debug: var=vms
+#       tags: [ deploy, fqdn ]
+# #
+#     - name: Start VM
+#       uri:
+#         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
+#         method: POST
+#         user: "{{ ravello_login.username }}"
+#         password: "{{ ravello_login.password }}"
+#         force_basic_auth: yes
+#         status_code: 202
+#         HEADER_Content-Type: 'application/json'
+#         HEADER_Accept: 'application/json'
+#       changed_when: true
+#       #register: update
+
+###############################
+##  Check VM Connectivity    ##
+###############################
+    - name: Get VM public FQDN
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.invocation.module_args.application_id }}/vms/{{ item.json.id }}/fqdn;deployment"
+        method: GET
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+        force_basic_auth: yes
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+      register: public_ip
+      with_items: "{{ vms.results }}"
+      tags: [ fqdn ]
+
+    - debug: var=public_ip
+      tags: [ fqdn ]
+
+#######################################
+##  Create file with all VMs info    ##
+#######################################
+
+    # Add a line to a file if it does not exist, without passing regexp
+    - name: Create applications name in file
+      lineinfile:
+        dest: "apps/fqdn.yaml"
+        line: "{{ item.item.item.item.app_name }}:"
+        create: yes
+      with_items: "{{ public_ip.results }}"
+      tags: [ fqdn ]
+      run_once: true
+
+    - name: Add VMs name to file
+      lineinfile:
+        # dest: "apps/{{ item.item.item.item.app_name }}/fqdn.yaml"
+        dest: "apps/fqdn.yaml"
+        line: "  {{ inventory_hostname }}: {{ item.json.value }}"
+        create: yes
+        insertafter: "^{{ item.item.item.item.app_name }}"
+      with_items: "{{ public_ip.results }}"
+      tags: [ fqdn ]
+    
+    # # Add a line to a file if it does not exist, without passing regexp
+    # - lineinfile:
+    #     dest: "apps/{{ item.item.item.item.app_name }}/fqdn.yaml"
+    #     line: "{{ inventory_hostname }}: {{ item.json.value }}"
+    #     create: yes
+    #   with_items: "{{ public_ip.results }}"
+    #   tags: [ fqdn ]
+    #   # when: item.0.item.app_name == item.item.item.app_name

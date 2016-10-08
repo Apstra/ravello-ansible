@@ -1,0 +1,13 @@
+
+#
+ravello:
+  blueprint: not defined
+  app_list: []
+  tmp_dir: /tmp/ravello
+  app_desc: "Description"
+  expiration_time_min: 30
+  deploy_topology:
+    cloud: AMAZON
+    region: Oregon
+    optimization: PERFORMANCE_OPTIMIZED
+    start_all: "false"

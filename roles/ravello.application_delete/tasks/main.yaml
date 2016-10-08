@@ -9,6 +9,8 @@
         password: "{{ ravello_login.password }}"
       register: app
       run_once: true
+      tags:
+        - delete
 
 ###############################
 ##  Delete the application   ##
@@ -27,3 +29,5 @@
       register: app
       run_once: true
       changed_when: true
+      tags:
+        - delete

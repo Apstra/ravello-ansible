@@ -1,6 +1,4 @@
 ---
-
-
 ###############################
 ## Get Application ID       ###
 ###############################
@@ -11,6 +9,8 @@
         password: "{{ ravello_login.password }}"
       register: app
       run_once: true
+      tags:
+        - fqdn
 
 ###############################
 ## Get VM ID       ###
@@ -22,6 +22,8 @@
         user: "{{ ravello_login.username }}"
         password: "{{ ravello_login.password }}"
       register: vm
+      tags:
+        - fqdn
 
 ###############################
 ##  Check VM Connectivity    ##
@@ -37,6 +39,8 @@
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
       register: ravello_public_ip
+      tags:
+        - fqdn
 
     # - debug: var=fqdn.json.value
 
@@ -46,3 +50,5 @@
         port: "{{ ravello.connectivity_port }}"
         timeout: "{{ ravello.connectivity_timeout }}"
       when: ravello.connectivity_check == true
+      tags:
+        - fqdn

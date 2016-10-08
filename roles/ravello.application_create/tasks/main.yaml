@@ -34,6 +34,9 @@
     - name: Render Template for Application
       template: src=create_blank_app.json.j2 dest={{ ravello.tmp_dir }}/create_blank_app.json
       run_once: true
+      tags:
+        - create
+
 
     - name: Create Application on Ravello
       uri:
@@ -50,6 +53,8 @@
       register: app
       run_once: true
       changed_when: true
+      tags:
+        - create
 
 #################################
 ## Add VMs to the application  ##
@@ -61,6 +66,9 @@
         user: "{{ ravello_login.username }}"
         password: "{{ ravello_login.password }}"
       register: vm
+      tags:
+        - create
+
 #    - debug: var=vm
 
 #################################
@@ -69,6 +77,8 @@
     - name: Render Template to Update VM
       template: src=update_vm.json.j2 dest={{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json
       when: ravello_topology[inventory_hostname] is defined
+      tags:
+        - create
 
     - name: Update VM in Application
       uri:
@@ -84,3 +94,5 @@
         body_format: json
       when: ravello_topology[inventory_hostname] is defined
       changed_when: true
+      tags:
+        - create

@@ -5,6 +5,7 @@
     - name: Create tmp directory
       file: path={{ ravello.tmp_dir }} state=directory
       run_once: True
+      tags: [ create ]
 
 ######################################
 ## Get baseVMid Number from Ravello
@@ -15,6 +16,8 @@
         user: "{{ ravello_login.username }}"
         password: "{{ ravello_login.password }}"
       register: image
+      tags: [ create ]
+
   #   - debug: var=images
 
 ######################################
@@ -27,6 +30,7 @@
         password: "{{ ravello_login.password }}"
       register: keypair
       when: ravello_key_pair is defined
+      tags: [ create ]
 
 ###############################
 ##  Create the application   ##
@@ -34,8 +38,7 @@
     - name: Render Template for Application
       template: src=create_blank_app.json.j2 dest={{ ravello.tmp_dir }}/create_blank_app.json
       run_once: true
-      tags:
-        - create
+      tags: [ create ]
 
 
     - name: Create Application on Ravello
@@ -53,8 +56,7 @@
       register: app
       run_once: true
       changed_when: true
-      tags:
-        - create
+      tags: [ create ]
 
 #################################
 ## Add VMs to the application  ##
@@ -66,8 +68,7 @@
         user: "{{ ravello_login.username }}"
         password: "{{ ravello_login.password }}"
       register: vm
-      tags:
-        - create
+      tags: [ create ]
 
 #    - debug: var=vm
 
@@ -77,8 +78,7 @@
     - name: Render Template to Update VM
       template: src=update_vm.json.j2 dest={{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json
       when: ravello_topology[inventory_hostname] is defined
-      tags:
-        - create
+      tags: [ create ]
 
     - name: Update VM in Application
       uri:
@@ -94,5 +94,4 @@
         body_format: json
       when: ravello_topology[inventory_hostname] is defined
       changed_when: true
-      tags:
-        - create
+      tags: [ create ]

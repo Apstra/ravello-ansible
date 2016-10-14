@@ -68,9 +68,15 @@
 {% if not conn %}
                 "autoIpConfig": {},
                 "hasPublicIp": false,
-{% elif conn.link == "dhcp-public" %}
+{% elif conn.link is defined and conn.link == "dhcp-public" %}
                 "autoIpConfig": {},
                 "hasPublicIp": true,
+{% elif conn.link is defined and conn.link == "static" %}
+                "staticIpConfig": {
+                  "ip": "{{ conn.ip }}",
+                  "mask": "{{ conn.mask }}",
+                  "gateway": "{{ conn.gw }}"
+                }
 {% else %}
                 "staticIpConfig": {
                   "ip": "{{ ravlinks[conn.link] }}{{ hostvars[inventory_hostname].id }}",
@@ -81,14 +87,35 @@
          }{% if not loop.last %},{% endif %}
 {%- endfor %}
       ]
-    {% if vmtype != 'vqfx_pfe' and vmtype != 'vfpc' %}
-      ,"suppliedServices": [
+{% if ravello_topology[inventory_hostname][0]['services'] is defined %}
+    ,"suppliedServices": [
+{% for service in ravello_topology[inventory_hostname][0]['services'] -%}
+{% if service|lower == 'ssh' %}
         {
-            "external": true,
-            "name": "ssh",
-            "portRange": "22",
-            "protocol": "SSH"
+          "external": true,
+          "name": "ssh",
+          "portRange": "22",
+          "protocol": "SSH"
         }
-      ]
-    {% endif %}
+{% elif service|lower == 'icmp' %}
+        {
+          "name": "icmp",
+          "protocol": "IP",
+          "external": true,
+          "ipProtocol": "1"
+        }
+{% elif service|lower == 'https' %}
+        {
+          "name": "HTTPS",
+{#           "ip": "10.25.1.3", #}
+          "portRange": "443",
+          "protocol": "HTTPS",
+          "external": true,
+          "enableSnat": true
+        }
+{% endif %}
+{% if not loop.last %},{% endif %}
+{%- endfor %}
+  ]
+{% endif %}
 }

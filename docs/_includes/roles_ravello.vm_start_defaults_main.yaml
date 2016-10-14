@@ -1,0 +1,15 @@
+
+.. code-block:: yaml
+
+
+    
+    ravello:
+      tmp_dir: /tmp/ravello
+      app_desc: "Description"
+      app_name: "new app"
+      expiration_time_min: 120
+      deploy_topology:
+        cloud: AMAZON
+        region: Oregon
+        optimization: PERFORMANCE_OPTIMIZED
+        start_all: false

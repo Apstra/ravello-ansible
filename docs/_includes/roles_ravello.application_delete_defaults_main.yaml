@@ -1,0 +1,9 @@
+
+.. code-block:: yaml
+
+
+    
+    ravello:
+      tmp_dir: /tmp/ravello
+      app_desc: "Description"
+      app_name: "new app"

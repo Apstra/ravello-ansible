@@ -4,10 +4,16 @@ ravello:
   blueprint: not defined
   app_list: []
   tmp_dir: /tmp/ravello
-  app_desc: "Description"
   expiration_time_min: 30
+  token:
+    expiration_time:
+    permissions: [ EXECUTE, UPDATE, READ ]
+    resource_type: APPLICATION
+    create_admin_url: true
   deploy_topology:
+    # cloud: oracle-ravello-cloud
+    # region: us-central-1
     cloud: AMAZON
     region: Oregon
     optimization: PERFORMANCE_OPTIMIZED
-    start_all: "false"
+    start_all: false

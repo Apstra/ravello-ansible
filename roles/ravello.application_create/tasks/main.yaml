@@ -35,11 +35,6 @@
 ###############################
 ##  Create the application   ##
 ###############################
-    - name: Render Template for Application
-      template: src=create_blank_app.json.j2 dest={{ ravello.tmp_dir }}/create_blank_app.json
-      run_once: true
-      tags: [ create ]
-
 
     - name: Create Application on Ravello
       uri:
@@ -51,7 +46,13 @@
         status_code: 201
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
-        body: "{{ lookup('file' , '{{ ravello.tmp_dir }}/create_blank_app.json') }}"
+        body: >
+          {
+            "name": "{{ ravello.app_name }}",
+            "description": "{{ ravello.app_desc }}",
+            "design": {
+            }
+          }
         body_format: json
       register: app
       run_once: true

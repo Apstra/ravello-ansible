@@ -33,7 +33,7 @@ To define your physical topology,
 you need to provide the mapping for each interface of each VM in the variable ``ravello_topology``.
 
 For each VM:
-- The name need to match the name defined in the inventory
+- The name need to match the name defined in the ansible inventory
 - The interface mapping needs to be define in order as a list starting from the first interface.
 
 For each interface, you need to provide a dict to indicate where the interface should be connected.
@@ -68,7 +68,6 @@ Example:
         - link: 13
 
 
-
 Create the playbook
 -------------------
 
@@ -87,3 +86,8 @@ It's possible to limit the execution of the playbook to a subset of VMs
 .. code-block:: text
 
     ansible-playbook pb.rav.create.yaml --forks=1 --limit=leaf
+
+Default Value
+-------------
+
+.. include:: _includes/roles_ravello.application_create_defaults_main.yaml

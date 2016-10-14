@@ -10,4 +10,4 @@ You're free to use it, "as it" or to save it in a file for further use.
 Default Value
 -------------
 
-Insert here default value used by the role
+.. include:: _includes/roles_ravello.get_fqdn_defaults_main.yaml

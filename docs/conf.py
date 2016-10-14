@@ -16,9 +16,23 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+
+import os
+import sys
+sys.path.insert(0, os.path.abspath('.'))
+import utility
+
+# --------- Copy files from to the project to the include dir -------------
+files_to_copy = [
+    { 'file': "roles/ravello.application_create/defaults/main.yaml", 'type': "yaml" },
+    { 'file': "roles/ravello.application_delete/defaults/main.yaml", 'type': "yaml" },
+    { 'file': "roles/ravello.blueprint_deploy/defaults/main.yaml", 'type': "yaml" },
+    { 'file': "roles/ravello.get_fqdn/defaults/main.yaml", 'type': "yaml" },
+    { 'file': "roles/ravello.vm_start/defaults/main.yaml", 'type': "yaml" },
+]
+
+for item in files_to_copy:
+    utility.copy_and_format_file(item['file'], item['type'])
 
 # -- General configuration ------------------------------------------------
 

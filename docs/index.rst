@@ -20,6 +20,7 @@ Contents:
    ravello_application_delete
    ravello_vm_start
    ravello_get_fqdn
+   ravello_blueprint_deploy
    ravello_lib
 
 Indices and tables

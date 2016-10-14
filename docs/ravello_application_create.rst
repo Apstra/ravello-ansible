@@ -39,14 +39,28 @@ For each VM:
 For each interface, you need to provide a dict to indicate where the interface should be connected.
 A L1 link is defined by an ``ID``, if you want to connect 2 interfaces together, you need to assign them the same ``ID``
 
+The valid options for ``link`` are:
+ - link id (integer)
+ - ``dhcp-public``
+ - ``static``
+
+If you need to configure external service on the management interface you can define ``services`` as well.
+Currently only : ssh, icmp and https are defined
+
+.. NOTE::
+  Services can only be applied on the first interface for now
+
 .. code-block:: yaml
 
-    link: "link_id" or "dhcp-public"
+    link: "link_id" or "dhcp-public" or "static"
     type: (optional) [virtio, default etc ..]
+    services: (optional) [ssh, icmp or https]
+    ip: (for link static)
+    mask: (for link static)
+    gw: (for link static)
 
 .. NOTE::
   it's possible to connect more than 2 interfaces together by assigning the same ID to more than 2 interfaces
-
 
 Example:
 
@@ -61,12 +75,20 @@ Example:
 
       leaf2:
         - link: dhcp-public
+          services: [ ssh, icmp ]
         - link: 92
         - null
         - link: 11
         - link: 12
         - link: 13
 
+      space:
+        - link: static
+          ip: "10.25.1.3"
+          mask: "255.255.255.0"
+          gw: "10.25.1.1"
+          services: [ https, icmp ]
+        - link: 54
 
 Create the playbook
 -------------------

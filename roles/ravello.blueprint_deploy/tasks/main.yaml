@@ -104,7 +104,7 @@
       tags: [ deploy ]
 
 ###############################
-## Get VM ID       ###
+## Get VM ID                ###
 ###############################
     - name: Get VM ID from Ravello
       ravello_get_vm:
@@ -190,8 +190,10 @@
 ##  Create inv file with all VMs info    ##
 ###########################################
 
-    - name: INV - Delete previous file
-      file: path=apps/inventory.ini state=absent
+    - name: INV - Cleanup previous inventory
+      template:
+        src: templates/inventory.ini.j2
+        dest: apps/inventory.ini
       tags: [ inventory ]
       run_once: true
 
@@ -200,6 +202,7 @@
         dest: "apps/inventory.ini"
         line: "[{{ inventory_hostname }}]"
         create: yes
+        insertafter: "###Device Here####"
       tags: [ inventory ]
 
     - name: INV - Add VMs name to inv
@@ -207,7 +210,7 @@
         dest: "apps/inventory.ini"
         line: "{{ item.json.value }}"
         create: yes
-        insertafter: "{{ inventory_hostname }}"
+        insertafter: '^\[{{ inventory_hostname }}\]'
       with_items: "{{ public_ip.results }}"
       tags: [ inventory ]
 
@@ -257,36 +260,33 @@
     #   run_once: true
     #   tags: [ token ]
 
-    - name: TOKEN - Delete previous token file
+    - name: TOKEN - Delete previous user token file
       file: path=apps/token.yaml state=absent
-      tags: [ token ]
-      run_once: true
-
-    - name: TOKEN - Create applications name in file
-      lineinfile:
-        dest: "apps/token.yaml"
-        line: "{{ item.item.item.app_name }}:"
-        create: yes
-      with_items: "{{ tokens.results }}"
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add User URLs to file
       lineinfile:
         dest: "apps/token.yaml"
-        line: "  user_url: https://access.ravellosystems.com/simple/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
+        line: "{{ item.item.item.app_name }}: https://access.ravellosystems.com/simple/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
-        insertafter: "^{{ item.item.item.app_name }}"
+        # insertafter: "^{{ item.item.item.app_name }}"
       with_items: "{{ tokens.results }}"
+      tags: [ token ]
+      run_once: true
+
+    - name: TOKEN - Delete previous admin token file
+      file: path=apps/token_admin.yaml state=absent
+      when: ravello.token.create_admin_url == true
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add Ravello URLs to file
       lineinfile:
-        dest: "apps/token.yaml"
-        line: "  admin_url: https://cloud.ravellosystems.com/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
+        dest: "apps/token_admin.yaml"
+        line: "{{ item.item.item.app_name }}: https://cloud.ravellosystems.com/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
-        insertafter: "^{{ item.item.item.app_name }}"
+        #insertafter: "^{{ item.item.item.app_name }}"
       with_items: "{{ tokens.results }}"
       when: ravello.token.create_admin_url == true
       tags: [ token ]

@@ -5,11 +5,17 @@ ravello:
   app_list: []
   tmp_dir: /tmp/ravello
   expiration_time_min: 30
+  fqdn:
+    file_name: fqdn
+  inventory:
+    template: templates/inventory.ini.j2
+    file_name: inventory
   token:
     expiration_time:
     permissions: [ EXECUTE, UPDATE, READ ]
     resource_type: APPLICATION
     create_admin_url: true
+    file_name: token
   deploy_topology:
     # cloud: oracle-ravello-cloud
     # region: us-central-1

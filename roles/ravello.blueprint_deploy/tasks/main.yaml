@@ -161,14 +161,14 @@
 #######################################
 
     - name: FQDN - Delete previous file
-      file: path=apps/fqdn.yaml state=absent
+      file: path=apps/{{ ravello.fqdn.file_name }}.yaml state=absent
       tags: [ fqdn ]
       run_once: true
 
     # Add a line to a file if it does not exist, without passing regexp
     - name: FQDN - Create applications name in file
       lineinfile:
-        dest: "apps/fqdn.yaml"
+        dest: "apps/{{ ravello.fqdn.file_name }}.yaml"
         line: "{{ item.item.item.item.app_name }}:"
         create: yes
       with_items: "{{ public_ip.results }}"
@@ -178,7 +178,7 @@
     - name: FQDN - Add VMs name to file
       lineinfile:
         # dest: "apps/{{ item.item.item.item.app_name }}/fqdn.yaml"
-        dest: "apps/fqdn.yaml"
+        dest: "apps/{{ ravello.fqdn.file_name }}.yaml"
         line: "  {{ inventory_hostname }}: {{ item.json.value }}"
         create: yes
         insertafter: "^{{ item.item.item.item.app_name }}"
@@ -192,14 +192,14 @@
 
     - name: INV - Cleanup previous inventory
       template:
-        src: templates/inventory.ini.j2
-        dest: apps/inventory.ini
+        src: "{{ ravello.inventory.template }}"
+        dest: apps/{{ ravello.inventory.file_name }}.ini
       tags: [ inventory ]
       run_once: true
 
     - name: INV - Create group name in file
       lineinfile:
-        dest: "apps/inventory.ini"
+        dest: "apps/{{ ravello.inventory.file_name }}.ini"
         line: "[{{ inventory_hostname }}]"
         create: yes
         insertafter: "###Device Here####"
@@ -207,7 +207,7 @@
 
     - name: INV - Add VMs name to inv
       lineinfile:
-        dest: "apps/inventory.ini"
+        dest: "apps/{{ ravello.inventory.file_name }}.ini"
         line: "{{ item.json.value }}"
         create: yes
         insertafter: '^\[{{ inventory_hostname }}\]'
@@ -261,13 +261,13 @@
     #   tags: [ token ]
 
     - name: TOKEN - Delete previous user token file
-      file: path=apps/token.yaml state=absent
+      file: path=apps/{{ ravello.token.file_name }}.yaml state=absent
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add User URLs to file
       lineinfile:
-        dest: "apps/token.yaml"
+        dest: "apps/{{ ravello.token.file_name }}.yaml"
         line: "{{ item.item.item.app_name }}: https://access.ravellosystems.com/simple/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
         # insertafter: "^{{ item.item.item.app_name }}"
@@ -276,14 +276,14 @@
       run_once: true
 
     - name: TOKEN - Delete previous admin token file
-      file: path=apps/token_admin.yaml state=absent
+      file: path=apps/{{ ravello.token.file_name }}_admin.yaml state=absent
       when: ravello.token.create_admin_url == true
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add Ravello URLs to file
       lineinfile:
-        dest: "apps/token_admin.yaml"
+        dest: "apps/{{ ravello.token.file_name }}_admin.yaml"
         line: "{{ item.item.item.app_name }}: https://cloud.ravellosystems.com/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
         #insertafter: "^{{ item.item.item.app_name }}"

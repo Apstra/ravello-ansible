@@ -1,0 +1,29 @@
+---
+###############################
+## Get Application ID       ###
+###############################
+    - name: Get App ID from Ravello
+      ravello_get_app:
+        application_name: "{{ item.app_name }}"
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+      register: apps
+      run_once: true
+      with_items: "{{ ravello_apps_list }}"
+
+###############################
+##  Stop the application   ##
+###############################
+    - name: Stop all VMs in Application on Ravello
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/stop"
+        method: POST
+        user: "{{ ravello_login.username }}"
+        password: "{{ ravello_login.password }}"
+        force_basic_auth: yes
+        status_code: 202
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+      run_once: true
+      changed_when: true
+      with_items: "{{ apps.results }}"

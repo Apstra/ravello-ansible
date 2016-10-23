@@ -26,7 +26,7 @@ import utility
 files_to_copy = [
     { 'file': "roles/ravello.application_create/defaults/main.yaml", 'type': "yaml" },
     { 'file': "roles/ravello.application_delete/defaults/main.yaml", 'type': "yaml" },
-    { 'file': "roles/ravello.blueprint_deploy/defaults/main.yaml", 'type': "yaml" },
+    #{ 'file': "roles/ravello.blueprint_deploy/defaults/main.yaml", 'type': "yaml" },
     { 'file': "roles/ravello.get_fqdn/defaults/main.yaml", 'type': "yaml" },
     { 'file': "roles/ravello.vm_start/defaults/main.yaml", 'type': "yaml" },
 ]

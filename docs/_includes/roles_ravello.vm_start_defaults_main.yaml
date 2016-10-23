@@ -3,13 +3,9 @@
 
 
     
-    ravello:
-      tmp_dir: /tmp/ravello
-      app_desc: "Description"
-      app_name: "new app"
-      expiration_time_min: 120
-      deploy_topology:
-        cloud: AMAZON
-        region: Oregon
-        optimization: PERFORMANCE_OPTIMIZED
-        start_all: false
+    ravello_app_name: "new app"
+    ravello_expiration_time_min: 120
+    ravello_deploy_topology_cloud: AMAZON
+    ravello_deploy_topology_region: Oregon
+    ravello_deploy_topology_optimization: PERFORMANCE_OPTIMIZED
+    ravello_deploy_topology_start_all: false

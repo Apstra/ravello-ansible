@@ -11,7 +11,7 @@ Download the project locally
 
 .. code-block:: text
 
-    git clone https...
+    git clone https://github.com/Juniper/ravello-ansible.git
 
 Add path to the directory to the variable ``roles_path`` into your Ansible configuration.
 Ansible can have multiple configuration file [add link to ansible doc]
@@ -40,6 +40,5 @@ It's recommanded to create a variable file dedicated for that under the ``group_
 .. code-block:: yaml
 
     # group_vars/all/credentials.yaml
-    ravello_login:
-      username: user@email.com
-      password: xxxyyy
+    ravello_login_username: user@email.com
+    ravello_login_password: xxxyyy

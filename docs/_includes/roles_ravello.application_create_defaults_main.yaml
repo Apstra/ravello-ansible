@@ -3,13 +3,12 @@
 
 
     
-    ravello:
-      tmp_dir: /tmp/ravello
-      app_desc: "Description"
-      app_name: "new app"
-      nic_type: virtio
-      create_topology:
-        mask: 255.255.255.0
+    ravello_tmp_dir: /tmp/ravello
+    ravello_image: not defined
+    ravello_app_name: new app
+    ravello_app_desc: created by Ansible
+    ravello_nic_type: virtio
+    ravello_create_topology_mask: 255.255.0.0
     
     ravlinks:
       0: "1.0.1."

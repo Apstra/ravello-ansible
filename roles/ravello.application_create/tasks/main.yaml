@@ -1,62 +1,100 @@
 ---
 ###############################
-## Check tmp dir
+## Check tmp dir            ###
 ###############################
     - name: Create tmp directory
-      file: path={{ ravello.tmp_dir }} state=directory
+      file: path={{ ravello_tmp_dir }} state=directory
       run_once: True
       tags: [ create ]
 
-######################################
-## Get baseVMid Number from Ravello
-######################################
-    - name: Get Image ID from Ravello
-      ravello_get_image:
-        image_name: "{{ ravello_image }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
-      register: image
-      tags: [ create ]
-
-  #   - debug: var=images
-
-######################################
-## Get id for Keypair from Ravello
-######################################
-    - name: Get Key Pair ID from Ravello
-      ravello_get_keypair:
-        keypair_name: "{{ ravello_key_pair }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
-      register: keypair
-      when: ravello_key_pair is defined
+###############################
+## Get Application ID       ###
+###############################
+    - name: Check if application exist
+      ravello_get_id:
+        resource_name: "{{ ravello_app_name }}"
+        resource_type: applications
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
+      register: app
+      run_once: true
       tags: [ create ]
 
 ###############################
 ##  Create the application   ##
 ###############################
-
-    - name: Create Application on Ravello
+    - name: Create Application on Ravello (if not present)
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 201
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
         body: >
           {
-            "name": "{{ ravello.app_name }}",
-            "description": "{{ ravello.app_desc }}",
+            "name": "{{ ravello_app_name }}",
+            "description": "{{ ravello_app_desc }}",
             "design": {
             }
           }
         body_format: json
-      register: app
+      register: newapp
       run_once: true
       changed_when: true
+      when: app.found == False
+      tags: [ create ]
+
+    - name: Set App ID variable
+      set_fact:
+        application_id: "{{ newapp.json.id }}"
+      when: app.found == False
+      tags: [ create ]
+
+    - name: Set App ID variable
+      set_fact:
+        application_id: "{{app.json.id}}"
+      when: app.found == True
+      tags: [ create ]
+
+## Check if VM already exist, connect info from Ravello
+#     - name: Get VM ID from Ravello
+#       ravello_get_id:
+#         application_id: "{{ app.json.id }}"
+#         resource_name: "{{ inventory_hostname }}"
+#         resource_type: vms
+#         user: "{{ ravello_login_username }}"
+#         password: "{{ ravello_login_password }}"
+#       register: vm
+#       tags: [ create, fqdn ]
+#       when: app.found == True
+
+######################################
+## Get baseVMid Number from Ravello
+######################################
+    - name: Get Image ID from Ravello
+      ravello_get_id:
+        resource_name: "{{ ravello_image }}"
+        resource_type: images
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
+      register: image
+      #when: vm.found == False
+      tags: [ create ]
+
+#    - debug: var=vm
+######################################
+## Get id for Keypair from Ravello
+######################################
+    - name: Get Key Pair ID from Ravello
+      ravello_get_keypair:
+        keypair_name: "{{ ravello_key_pair }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
+      register: keypair
+      when: ravello_key_pair is defined
       tags: [ create ]
 
 #################################
@@ -64,35 +102,62 @@
 #################################
     - name: Add VM to Application
       ravello_addvm:
-        appId: "{{ app.json.id }}"
+        appId: "{{ application_id }}"
         baseVmId: "{{ image.json.baseVmId }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: vm
-      tags: [ create ]
-
-#    - debug: var=vm
+  #    when: vm.found == False
+      tags: [ create, fqdn ]
 
 #################################
 ##   Update Network Topology   ##
 #################################
     - name: Render Template to Update VM
-      template: src=update_vm.json.j2 dest={{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json
+      template: src=update_vm.json.j2 dest={{ ravello_tmp_dir }}/update_{{ inventory_hostname }}_vm.json
       when: ravello_topology[inventory_hostname] is defined
       tags: [ create ]
 
     - name: Update VM in Application
       uri:
-        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.msg.id }}"
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ application_id }}/vms/{{ vm.msg.id }}"
         method: PUT
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
-        body: "{{ lookup('file' , '{{ ravello.tmp_dir }}/update_{{ inventory_hostname }}_vm.json') }}"
+        body: "{{ lookup('file' , '{{ ravello_tmp_dir }}/update_{{ inventory_hostname }}_vm.json') }}"
         body_format: json
       when: ravello_topology[inventory_hostname] is defined
       changed_when: true
       tags: [ create ]
+
+###############################
+##  Check VM Connectivity    ##
+###############################
+
+    #
+    # - name: Get VM public FQDN
+    #   uri:
+    #     url: "https://cloud.ravellosystems.com/api/v1/applications/{{ application_id }}/vms/{{ vm.json.id }}/fqdn;deployment"
+    #     method: GET
+    #     user: "{{ ravello_login_username }}"
+    #     password: "{{ ravello_login_password }}"
+    #     force_basic_auth: yes
+    #     status_code: 200
+    #     HEADER_Content-Type: 'application/json'
+    #     HEADER_Accept: 'application/json'
+    #   register: ravello_public_ip
+    #   tags: [ fqdn, check ]
+    #
+    # # - debug: var=fqdn.json.value
+    #
+    # - name: Check ssh connectivity
+    #   wait_for:
+    #     host: "{{ ravello_public_ip.json.value }} "
+    #     port: "{{ ravello_connectivity_port }}"
+    #     timeout: "{{ ravello_connectivity_timeout }}"
+    #   when: ravello_connectivity_check == true
+    #   tags: [ fqdn, check ]

@@ -4,9 +4,9 @@
 ###############################
     - name: Get App ID from Ravello
       ravello_get_app:
-        application_name: "{{ ravello.app_name }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        application_name: "{{ ravello_app_name }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: app
       run_once: true
       tags:
@@ -19,8 +19,8 @@
       ravello_get_vm:
         application_id: "{{ app.json.id }}"
         vm_name: "{{ inventory_hostname }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: vm
       tags:
         - fqdn
@@ -32,8 +32,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/fqdn;deployment"
         method: GET
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
@@ -47,8 +47,8 @@
     - name: Check ssh connectivity
       wait_for:
         host: "{{ ravello_public_ip.json.value }} "
-        port: "{{ ravello.connectivity_port }}"
-        timeout: "{{ ravello.connectivity_timeout }}"
-      when: ravello.connectivity_check == true
+        port: "{{ ravello_connectivity_port }}"
+        timeout: "{{ ravello_connectivity_timeout }}"
+      when: ravello_connectivity_check == true
       tags:
         - fqdn

@@ -60,7 +60,7 @@
             "accessPort": true,
             "name" : "{{ "em" ~ int_index }}",
             "device": {
-               "deviceType": "{{ conn.type | default(ravello.nic_type) }}",
+               "deviceType": "{{ conn.type | default(ravello_nic_type) }}",
                "index": {{ loop.index }},
                "useAutomaticMac": true
             },
@@ -80,7 +80,7 @@
 {% else %}
                 "staticIpConfig": {
                   "ip": "{{ ravlinks[conn.link] }}{{ hostvars[inventory_hostname].id }}",
-                  "mask": "{{ ravello.create_topology.mask }}"
+                  "mask": "{{ ravello_create_topology_mask }}"
                 }
 {% endif %}
             }

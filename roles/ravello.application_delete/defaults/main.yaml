@@ -1,5 +1,2 @@
 
-ravello:
-  tmp_dir: /tmp/ravello
-  app_desc: "Description"
-  app_name: "new app"
+ravello_app_name: "NOT DEFINED"

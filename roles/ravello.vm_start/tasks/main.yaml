@@ -5,9 +5,9 @@
 ###############################
     - name: Get App ID from Ravello
       ravello_get_app:
-        application_name: "{{ ravello.app_name }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        application_name: "{{ ravello_app_name }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: app
       run_once: true
       tags: [ deploy, start ]
@@ -23,18 +23,18 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/publish"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 202
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
         body: >
           {
-              "preferredCloud": "{{ ravello.deploy_topology.cloud }}",
-              "preferredRegion": "{{ ravello.deploy_topology.region }}",
-              "optimizationLevel": "{{ ravello.deploy_topology.optimization }}",
-              "startAllVms": "{{ ravello.deploy_topology.start_all }}"
+              "preferredCloud": "{{ ravello_deploy_topology_cloud }}",
+              "preferredRegion": "{{ ravello_deploy_topology_region }}",
+              "optimizationLevel": "{{ ravello_deploy_topology_optimization }}",
+              "startAllVms": "{{ ravello_deploy_topology_start_all }}"
           }
         body_format: json
       run_once: true
@@ -49,13 +49,13 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/setExpiration"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
-        body: '{  "expirationFromNowSeconds": {{ ravello.expiration_time_min * 60 }} }'
+        body: '{  "expirationFromNowSeconds": {{ ravello_expiration_time_min * 60 }} }'
         body_format: json
       run_once: true
       when: not app.json.published
@@ -68,23 +68,21 @@
       ravello_get_vm:
         application_id: "{{ app.json.id }}"
         vm_name: "{{ inventory_hostname }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: vm
       tags: [ start ]
 
 #    - debug: var=vm
-
     - name: Start VM
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 202
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
       changed_when: true
-      #register: update
       tags: [ start ]

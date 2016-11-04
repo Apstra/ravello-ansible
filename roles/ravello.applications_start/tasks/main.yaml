@@ -5,8 +5,8 @@
     - name: Get App ID from Ravello
       ravello_get_app:
         application_name: "{{ item.app_name }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: apps
       run_once: true
       with_items: "{{ ravello_apps_list }}"

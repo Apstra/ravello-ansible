@@ -19,11 +19,12 @@ def main():
 
   module = AnsibleModule(
     argument_spec = dict(
-      user = dict(required = True, default = None),
-      password = dict(required = True, default = None),
+      user = dict(required = False, default = None),
+      password = dict(required = False, default = None),
+      token = dict(required = False, default = None),
       resource_type = dict(required=True, default = None,
                            choices=['applications',
-                                    'blueprint',
+                                    'blueprints',
                                     'images',
                                     'vms',
                                     'keypair']),
@@ -35,18 +36,35 @@ def main():
   )
 
   args = module.params
-  url = ""
 
+  ####################################################
+  ## Determine URL
+  ####################################################
+  url = ""
   if args['resource_type'] == 'vms' and args['application_id']:
-    url = "https://cloud.ravellosystems.com/api/v1/{0}/vms/{1}".format(args['application_id'], args['resource_type'])
+    url = "https://cloud.ravellosystems.com/api/v1/applications/{0}/vms".format(args['application_id'])
   else:
     url = "https://cloud.ravellosystems.com/api/v1/{0}".format(args['resource_type'])
 
+  ####################################################
+  ## Determine Authentication Method
+  ####################################################
   headers = {"Accept" : "application/json", "Content-Type" : "application/json"}
-  r = requests.get(url,
-    auth = (args['user'], args['password']),
-    headers = headers,
-  )
+  r = ""
+  if args['user']:
+    r = requests.get(
+      url,
+      auth = (args['user'], args['password']),
+      headers = headers,
+    )
+  elif args['token']:
+    headers['X-Ephemeral-Token-Authorization'] = args['token']
+    r = requests.get(
+      url,
+      headers = headers,
+    )
+  else:
+    module.fail_json(msg = "Neither User nor Token provided")
 
   resp = dict(found=False)
 
@@ -60,10 +78,10 @@ def main():
                  resp['json'] = resource
                  module.exit_json(**resp)
 
-      if args['failed_if_not_found']:
-        module.fail_json(msg = "Unable to find the {0} named '{1}' in Ravello, please check if the App exist".format(args['application_type'], args['application_name']))
-
-  module.exit_json(**resp)
+  if args['failed_if_not_found']:
+        module.fail_json(msg = "Unable to find the {0} named '{1}' in Ravello, please check if it exists".format(args['application_type'], args['application_name']))
+  else:
+    module.exit_json(**resp)
 
 if __name__ == "__main__":
     main()

@@ -4,8 +4,8 @@
 ###############################
     - name: Get App ID from Ravello
       ravello_get_id:
-        resource_type: applications
         resource_name: "{{ item.app_name }}"
+        resource_type: applications
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: apps
@@ -13,16 +13,17 @@
       with_items: "{{ ravello_apps_list }}"
 
 ###############################
-##  Stop the application    ###
+##  Delete the application   ##
 ###############################
-    - name: Stop all VMs in Application on Ravello
+
+    - name: Delete Application on Ravello
       uri:
-        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/stop"
-        method: POST
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}"
+        method: DELETE
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
         force_basic_auth: yes
-        status_code: 202
+        status_code: 204
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
       run_once: true

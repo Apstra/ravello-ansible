@@ -17,9 +17,10 @@
 ## Get VM ID       ###
 ###############################
     - name: Get VM ID from Ravello
-      ravello_get_vm:
+      ravello_get_id:
+        resource_type: vms
         application_id: "{{ app.json.id }}"
-        vm_name: "{{ inventory_hostname }}"
+        resource_name: "{{ inventory_hostname }}"
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: vm

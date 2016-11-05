@@ -2,7 +2,7 @@
 ravello_tmp_dir: /tmp/ravello
 ravello_image: not defined
 ravello_app_name: new app
-ravello_app_desc: created by Ansible
+ravello_app_desc: Created by Ansible
 ravello_nic_type: virtio
 ravello_create_topology_mask: 255.255.0.0
 

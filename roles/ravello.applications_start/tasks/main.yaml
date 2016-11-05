@@ -3,8 +3,9 @@
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello
-      ravello_get_app:
-        application_name: "{{ item.app_name }}"
+      ravello_get_id:
+        resource_type: applications
+        resource_name: "{{ item.app_name }}"
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: apps

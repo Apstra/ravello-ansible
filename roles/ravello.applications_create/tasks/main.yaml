@@ -3,16 +3,14 @@
 ## Get Application ID       ###
 ###############################
     - name: Get Blueprint ID from Ravello
-      ravello_get_blueprint:
-        blueprint_name: "{{ ravello.blueprint }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+      ravello_get_id:
+        resource_name: "{{ ravello_blueprint }}"
+        resource_type: blueprints
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: bp
       run_once: true
       tags: [ create ]
-
-    # - debug: var=bp
-    #   tags: [ create, debug ]
 
 #####################################################
 ##  Create multiple application from Blueprint     ##
@@ -22,8 +20,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 201
         HEADER_Content-Type: 'application/json'
@@ -36,20 +34,21 @@
       run_once: true
       changed_when: true
       register: apps
-      with_items: "{{ ravello.app_list }}"
+      with_items: "{{ ravello_app_list }}"
       tags: [ create ]
 
 ###############################
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello for each App
-      ravello_get_app:
-        application_name: "{{ item.app_name }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+      ravello_get_id:
+        resource_name: "{{ item.app_name }}"
+        resource_type: applications
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: apps
       run_once: true
-      with_items: "{{ ravello.app_list }}"
+      with_items: "{{ ravello_app_list }}"
       tags: [ deploy, fqdn, token, inventory ]
 
     # - debug: var=apps
@@ -63,18 +62,18 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/publish"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 202
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
         body: >
           {
-            "preferredCloud": "{{ ravello.deploy_topology.cloud }}",
-            "preferredRegion": "{{ ravello.deploy_topology.region }}",
-            "optimizationLevel": "{{ ravello.deploy_topology.optimization }}",
-            "startAllVms": "{{ ravello.deploy_topology.start_all }}"
+            "preferredCloud": "{{ ravello_deploy_topology_cloud }}",
+            "preferredRegion": "{{ ravello_deploy_topology_region }}",
+            "optimizationLevel": "{{ ravello_deploy_topology_optimization }}",
+            "startAllVms": "{{ ravello_deploy_topology_start_all }}"
           }
         body_format: json
       run_once: true
@@ -89,13 +88,13 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/setExpiration"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
-        body: '{  "expirationFromNowSeconds": {{ ravello.expiration_time_min * 60 }} }'
+        body: '{  "expirationFromNowSeconds": {{ ravello_expiration_time_min * 60 }} }'
         body_format: json
       run_once: true
       # register: deploy
@@ -107,11 +106,12 @@
 ## Get VM ID                ###
 ###############################
     - name: Get VM ID from Ravello
-      ravello_get_vm:
+      ravello_get_id:
+        resource_type: vms
         application_id: "{{ item.json.id }}"
-        vm_name: "{{ inventory_hostname }}"
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        resource_name: "{{ inventory_hostname }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
       register: vms
       with_items: "{{ apps.results }}"
       tags: [ deploy, fqdn, inventory ]
@@ -127,8 +127,8 @@
 #       uri:
 #         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
 #         method: POST
-#         user: "{{ ravello_login.username }}"
-#         password: "{{ ravello_login.password }}"
+#         user: "{{ ravello_login_username }}"
+#         password: "{{ ravello_login_password }}"
 #         force_basic_auth: yes
 #         status_code: 202
 #         HEADER_Content-Type: 'application/json'
@@ -143,8 +143,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.invocation.module_args.application_id }}/vms/{{ item.json.id }}/fqdn;deployment"
         method: GET
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
@@ -161,14 +161,14 @@
 #######################################
 
     - name: FQDN - Delete previous file
-      file: path=apps/{{ ravello.fqdn.file_name }}.yaml state=absent
+      file: path=apps/{{ ravello_fqdn_file_name }}.yaml state=absent
       tags: [ fqdn ]
       run_once: true
 
     # Add a line to a file if it does not exist, without passing regexp
     - name: FQDN - Create applications name in file
       lineinfile:
-        dest: "apps/{{ ravello.fqdn.file_name }}.yaml"
+        dest: "apps/{{ ravello_fqdn_file_name }}.yaml"
         line: "{{ item.item.item.item.app_name }}:"
         create: yes
       with_items: "{{ public_ip.results }}"
@@ -178,13 +178,12 @@
     - name: FQDN - Add VMs name to file
       lineinfile:
         # dest: "apps/{{ item.item.item.item.app_name }}/fqdn.yaml"
-        dest: "apps/{{ ravello.fqdn.file_name }}.yaml"
+        dest: "apps/{{ ravello_fqdn_file_name }}.yaml"
         line: "  {{ inventory_hostname }}: {{ item.json.value }}"
         create: yes
         insertafter: "^{{ item.item.item.item.app_name }}"
       with_items: "{{ public_ip.results }}"
       tags: [ fqdn ]
-
 
 ###########################################
 ##  Create inv file with all VMs info    ##
@@ -192,14 +191,14 @@
 
     - name: INV - Cleanup previous inventory
       template:
-        src: "{{ ravello.inventory.template }}"
+        src: "{{ ravello_inventory_template }}"
         dest: apps/{{ ravello.inventory.file_name }}.ini
       tags: [ inventory ]
       run_once: true
 
     - name: INV - Create group name in file
       lineinfile:
-        dest: "apps/{{ ravello.inventory.file_name }}.ini"
+        dest: "apps/{{ ravello_inventory_file_name }}.ini"
         line: "[{{ inventory_hostname }}]"
         create: yes
         insertafter: "###Device Here####"
@@ -207,7 +206,7 @@
 
     - name: INV - Add VMs name to inv
       lineinfile:
-        dest: "apps/{{ ravello.inventory.file_name }}.ini"
+        dest: "apps/{{ ravello_inventory_file_name }}.ini"
         line: "{{ item.json.value }}"
         create: yes
         insertafter: '^\[{{ inventory_hostname }}\]'
@@ -222,8 +221,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/ephemeralAccessTokens"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 201
         HEADER_Content-Type: 'application/json'
@@ -232,8 +231,8 @@
           { "name": "{{ item.item.app_name }}-token",
             "permissions": [
               {
-                "actions": {{ ravello.token.permissions | to_json }},
-                "resourceType": "{{ ravello.token.resource_type }}",
+                "actions": {{ ravello_token_permissions | to_json }},
+                "resourceType": "{{ ravello_token_resource_type }}",
                 "filterCriterion": {
                   "type": "COMPLEX",
                   "operator": "Or",
@@ -261,13 +260,13 @@
     #   tags: [ token ]
 
     - name: TOKEN - Delete previous user token file
-      file: path=apps/{{ ravello.token.file_name }}.yaml state=absent
+      file: path=apps/{{ ravello_token_file_name }}.yaml state=absent
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add User URLs to file
       lineinfile:
-        dest: "apps/{{ ravello.token.file_name }}.yaml"
+        dest: "apps/{{ ravello_token_file_name }}.yaml"
         line: "{{ item.item.item.app_name }}: https://access.ravellosystems.com/simple/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
         # insertafter: "^{{ item.item.item.app_name }}"
@@ -276,18 +275,18 @@
       run_once: true
 
     - name: TOKEN - Delete previous admin token file
-      file: path=apps/{{ ravello.token.file_name }}_admin.yaml state=absent
-      when: ravello.token.create_admin_url == true
+      file: path=apps/{{ ravello_token_file_name }}_admin.yaml state=absent
+      when: ravello_token_create_admin_url == true
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add Ravello URLs to file
       lineinfile:
-        dest: "apps/{{ ravello.token.file_name }}_admin.yaml"
+        dest: "apps/{{ ravello_token_file_name }}_admin.yaml"
         line: "{{ item.item.item.app_name }}: https://cloud.ravellosystems.com/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
         #insertafter: "^{{ item.item.item.app_name }}"
       with_items: "{{ tokens.results }}"
-      when: ravello.token.create_admin_url == true
+      when: ravello_token_create_admin_url == true
       tags: [ token ]
       run_once: true

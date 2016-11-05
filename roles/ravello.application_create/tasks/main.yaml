@@ -89,8 +89,9 @@
 ## Get id for Keypair from Ravello
 ######################################
     - name: Get Key Pair ID from Ravello
-      ravello_get_keypair:
-        keypair_name: "{{ ravello_key_pair }}"
+      ravello_get_id:
+        resource_type: keypairs
+        resource_name: "{{ ravello_key_pair }}"
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: keypair

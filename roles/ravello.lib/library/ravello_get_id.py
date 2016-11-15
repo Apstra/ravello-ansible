@@ -27,7 +27,7 @@ def main():
                                     'blueprints',
                                     'images',
                                     'vms',
-                                    'keypair']),
+                                    'keypairs']),
       resource_name = dict(required = True, default = None),
       application_id = dict(required = False, default = None),
       failed_if_not_found = dict(required=False, type='bool', default = False),

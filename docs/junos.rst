@@ -33,16 +33,21 @@ For Dataplane VM (VFPC)
  - network > Change all NIC to VirtIO
 
 .. NOTE::
-  
-   For vMX VCP, the console is not working by default, you have to enable it by using the virtual keyboard ``ctrl + alt + 2``
+
+   For vMX VCP before 16.1R2, the console is not working by default, you have to enable it by using the virtual keyboard ``ctrl + alt + 2``
 
 Interfaces mapping for VMX
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 VCP
-- FXP
-- Connection to PFE
+ - Management (FXP0)
+ - Connection to PFE (VFCP)
 
 VFCP
-- Mgmt
-- Connection to PFE
-- Dataplane ports
+ - Management
+ - Connection to RE (VCP)
+ - Dataplane port
+ - Dataplane port
+ - Dataplane port
+ - Dataplane port
+ - Dataplane port
+ - cont...

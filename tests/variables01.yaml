@@ -1,0 +1,18 @@
+
+ravello_login_username: user
+ravello_login_password: pwd
+
+ravello_app_name: "Topology Test"
+
+ravello_topology:
+  device1:
+    - link: dhcp-public
+      services: [ ssh, icmp ]
+    - link: 81
+    - link: 91
+    - link: 11
+    - link: 13
+
+  deice2:
+    - link: dhcp-public
+    - link: 81

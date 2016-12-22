@@ -1,0 +1,18 @@
+---
+- name: Check if all roles have valid syntax
+  connection: local
+  hosts: all
+  gather_facts: no
+  roles:
+    - ravello.lib
+    - ravello.application_create
+    - ravello.application_delete
+    - ravello.applications_create
+    - ravello.applications_delete
+    - ravello.applications_start
+    - ravello.applications_stop
+    - ravello.get_fqdn
+    - ravello.vm_start
+
+  pre_tasks:
+    - include_vars: "variables01.yaml"

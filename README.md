@@ -12,7 +12,16 @@ With these roles, it's possible to:
 
 # How to use these roles
 
-You can reference to this projet as an example: [https://github.com/dgarros/rav-ipfabric-demo](https://github.com/dgarros/rav-ipfabric-demo)
+You can reference to this project for an example: [https://github.com/dgarros/rav-ipfabric-demo](https://github.com/dgarros/rav-ipfabric-demo)
+
+# Docker container
+
+A docker container `juniper/ravello-ansible` is provided to easily use this project.   
+By default working directory for the container is `/project`, if you mount it you can use the container directly on your local project
+
+```
+docker run -t -i -v $(pwd):/project juniper/ravello-ansible ansible-playbook -i <inventory> <playbook>
+```
 
 # Documentation
 

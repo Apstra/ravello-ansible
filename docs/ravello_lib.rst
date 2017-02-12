@@ -4,7 +4,7 @@ Library of modules (ravello.lib)
 This role is a library of small Ansible modules to help interact with the Ravello API
 
 ravello_addvm
---------------
+-------------
 
 Add a new VM to an existing application and return the newly created VM
 
@@ -16,52 +16,45 @@ Add a new VM to an existing application and return the newly created VM
       user: "{{ login.username }}"
       password: "{{ login.password }}"
 
-ravello_get_app
+ravello_get_id
 ---------------
 
-Retrieve the ID of an application based on its name
+Retrieve the ID of several resources based on its name
 
 .. code-block:: yaml
 
-    ravello_get_app:
-      application_name: "{{ ravello.app_name }}"
+    # Get Application Id
+    ravello_get_id:
+      resource_name: "my-application"
+      resource_type: applications
       user: "{{ login.username }}"
       password: "{{ login.password }}"
 
-ravello_get_image
------------------
-
-Retrieve the ID of an image based on its name
-
-.. code-block:: yaml
-
-    ravello_get_image:
-      image_name: "{{ ravello_image }}"
+    # Get Image Id
+    ravello_get_id:
+      resource_name: "my-image"
+      resource_type: image
       user: "{{ login.username }}"
       password: "{{ login.password }}"
 
-
-ravello_get_keypair
--------------------
-
-Retrieve the ID of a key pair based on its name
-
-.. code-block:: yaml
-
-    ravello_get_keypair:
-      keypair_name: "{{ ravello_key_pair }}"
+    # Get Blueprint Id
+    ravello_get_id:
+      resource_name: "my-blueprint"
+      resource_type: blueprints
       user: "{{ login.username }}"
       password: "{{ login.password }}"
 
-ravello_get_vm
---------------
+    # Get VM Id
+    ravello_get_id:
+      resource_type: vms
+      application_id: "{{ application_id }}"
+      resource_name: "vm_name"
+      user: "{{ ravello_login_username }}"
+      password: "{{ ravello_login_password }}"
 
-Retrieve the ID of a VM based on its name
-
-.. code-block:: yaml
-
-    ravello_get_vm:
-      application_id: "{{ app.json.id }}"
-      vm_name: "{{ inventory_hostname }}"
+    # Get keypair Id
+    ravello_get_id:
+      resource_name: "my-keypair"
+      resource_type: keypairs
       user: "{{ login.username }}"
       password: "{{ login.password }}"

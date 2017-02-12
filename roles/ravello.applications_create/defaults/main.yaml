@@ -5,14 +5,20 @@ ravello_blueprint: not defined
 ravello_app_list: []
 ravello_tmp_dir: /tmp/ravello
 ravello_expiration_time_min: 30
+
 ravello_fqdn_file_name: fqdn
-ravello_inventory_template: templates/inventory.ini.j2
+ravello_fqdn_dir: app
+
+ravello_inventory_template: inventory.ini.j2
 ravello_inventory_file_name: inventory
-ravello_tokenexpiration_time:
-ravello_tokenpermissions: [ EXECUTE, UPDATE, READ ]
-ravello_tokenresource_type: APPLICATION
-ravello_tokencreate_admin_url: true
-ravello_tokenfile_name: token
+ravello_inventory_dir: app
+
+ravello_token_expiration_time:
+ravello_token_permissions: [ EXECUTE, UPDATE, READ ]
+ravello_token_resource_type: APPLICATION
+ravello_token_create_admin_url: true
+ravello_token_file_name: token
+ravello_token_dir: app
 
 # ravello_deploy_topology_cloud: oracle-ravello-cloud
 # ravello_deploy_topology_region: us-central-1

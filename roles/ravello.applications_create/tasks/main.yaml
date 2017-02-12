@@ -1,6 +1,6 @@
 ---
 ###############################
-## Get Application ID       ###
+## Get Blueprint ID         ###
 ###############################
     - name: Get Blueprint ID from Ravello
       ravello_get_id:
@@ -15,7 +15,6 @@
 #####################################################
 ##  Create multiple application from Blueprint     ##
 #####################################################
-
     - name: Create Applications from Blueprint
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/"
@@ -28,7 +27,7 @@
         HEADER_Accept: 'application/json'
         body:
           name: "{{ item.app_name }}"
-          description: "app created by ansible"
+          description: "App created by ansible"
           baseBlueprintId: "{{ bp.json.id }}"
         body_format: json
       run_once: true
@@ -53,7 +52,7 @@
 
     # - debug: var=apps
     #   run_once: true
-    #   tags: [ deploy, debug, fqdn ]
+    #   tags: [ deploy, debug, fqdn, token ]
 
 #######################################################
 ##  Deploy Application(s)                            ##
@@ -114,32 +113,13 @@
         password: "{{ ravello_login_password }}"
       register: vms
       with_items: "{{ apps.results }}"
-      tags: [ deploy, fqdn, inventory ]
+      tags: [ fqdn, inventory ]
 
-# #################################
-# ## Launch VMs one by one       ##
-# #################################
-
-#     - debug: var=vms
-#       tags: [ deploy, fqdn ]
-# #
-#     - name: Start VM
-#       uri:
-#         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
-#         method: POST
-#         user: "{{ ravello_login_username }}"
-#         password: "{{ ravello_login_password }}"
-#         force_basic_auth: yes
-#         status_code: 202
-#         HEADER_Content-Type: 'application/json'
-#         HEADER_Accept: 'application/json'
-#       changed_when: true
-#       #register: update
-
+    # - debug: var=vms
 ###############################
 ##  Check VM Connectivity    ##
 ###############################
-    - name: Get VM public FQDN
+    - name: Get VM Public FQDN
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.invocation.module_args.application_id }}/vms/{{ item.json.id }}/fqdn;deployment"
         method: GET
@@ -161,14 +141,14 @@
 #######################################
 
     - name: FQDN - Delete previous file
-      file: path=apps/{{ ravello_fqdn_file_name }}.yaml state=absent
+      file: path={{ ravello_fqdn_dir }}/{{ ravello_fqdn_file_name }}.yaml state=absent
       tags: [ fqdn ]
       run_once: true
 
     # Add a line to a file if it does not exist, without passing regexp
     - name: FQDN - Create applications name in file
       lineinfile:
-        dest: "apps/{{ ravello_fqdn_file_name }}.yaml"
+        dest: "{{ ravello_fqdn_dir }}/{{ ravello_fqdn_file_name }}.yaml"
         line: "{{ item.item.item.item.app_name }}:"
         create: yes
       with_items: "{{ public_ip.results }}"
@@ -178,7 +158,7 @@
     - name: FQDN - Add VMs name to file
       lineinfile:
         # dest: "apps/{{ item.item.item.item.app_name }}/fqdn.yaml"
-        dest: "apps/{{ ravello_fqdn_file_name }}.yaml"
+        dest: "{{ ravello_fqdn_dir }}//{{ ravello_fqdn_file_name }}.yaml"
         line: "  {{ inventory_hostname }}: {{ item.json.value }}"
         create: yes
         insertafter: "^{{ item.item.item.item.app_name }}"
@@ -189,16 +169,21 @@
 ##  Create inv file with all VMs info    ##
 ###########################################
 
+    - name: INV - Check if ravello_inventory_dir exist
+      file: path={{ ravello_inventory_dir }} state=directory
+      tags: [ inventory ]
+      run_once: true
+
     - name: INV - Cleanup previous inventory
       template:
         src: "{{ ravello_inventory_template }}"
-        dest: apps/{{ ravello.inventory.file_name }}.ini
+        dest: "{{ ravello_inventory_dir }}/{{ ravello_inventory_file_name }}.ini"
       tags: [ inventory ]
       run_once: true
 
     - name: INV - Create group name in file
       lineinfile:
-        dest: "apps/{{ ravello_inventory_file_name }}.ini"
+        dest: "{{ ravello_inventory_dir }}/{{ ravello_inventory_file_name }}.ini"
         line: "[{{ inventory_hostname }}]"
         create: yes
         insertafter: "###Device Here####"
@@ -206,7 +191,7 @@
 
     - name: INV - Add VMs name to inv
       lineinfile:
-        dest: "apps/{{ ravello_inventory_file_name }}.ini"
+        dest: "{{ ravello_inventory_dir }}/{{ ravello_inventory_file_name }}.ini"
         line: "{{ item.json.value }}"
         create: yes
         insertafter: '^\[{{ inventory_hostname }}\]'
@@ -217,7 +202,7 @@
 ## Create Token for each application    ##
 ##########################################
 
-    - name: TOKEN - Create ephemeral token for each applications
+    - name: TOKEN - Create Ephemeral Token for Each Applications
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/ephemeralAccessTokens"
         method: POST
@@ -260,13 +245,13 @@
     #   tags: [ token ]
 
     - name: TOKEN - Delete previous user token file
-      file: path=apps/{{ ravello_token_file_name }}.yaml state=absent
+      file: path={{ ravello_token_dir }}/{{ ravello_token_file_name }}.yaml state=absent
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add User URLs to file
       lineinfile:
-        dest: "apps/{{ ravello_token_file_name }}.yaml"
+        dest: "{{ ravello_token_dir }}/{{ ravello_token_file_name }}.yaml"
         line: "{{ item.item.item.app_name }}: https://access.ravellosystems.com/simple/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
         # insertafter: "^{{ item.item.item.app_name }}"
@@ -275,17 +260,16 @@
       run_once: true
 
     - name: TOKEN - Delete previous admin token file
-      file: path=apps/{{ ravello_token_file_name }}_admin.yaml state=absent
+      file: path={{ ravello_token_dir }}/{{ ravello_token_file_name }}_admin.yaml state=absent
       when: ravello_token_create_admin_url == true
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add Ravello URLs to file
       lineinfile:
-        dest: "apps/{{ ravello_token_file_name }}_admin.yaml"
+        dest: "{{ ravello_token_dir }}/{{ ravello_token_file_name }}_admin.yaml"
         line: "{{ item.item.item.app_name }}: https://cloud.ravellosystems.com/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
-        #insertafter: "^{{ item.item.item.app_name }}"
       with_items: "{{ tokens.results }}"
       when: ravello_token_create_admin_url == true
       tags: [ token ]

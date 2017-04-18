@@ -10,7 +10,7 @@
         password: "{{ ravello_login_password }}"
       register: apps
       run_once: true
-      with_items: "{{ ravello_apps_list }}"
+      with_items: "{{ ravello_app_list }}"
 
 ###############################
 ##  Start the application   ##

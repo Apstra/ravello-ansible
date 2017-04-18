@@ -20,8 +20,8 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/start"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 202
         HEADER_Content-Type: 'application/json'
@@ -34,13 +34,13 @@
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/setExpiration"
         method: POST
-        user: "{{ ravello_login.username }}"
-        password: "{{ ravello_login.password }}"
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
         force_basic_auth: yes
         status_code: 200
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
-        body: '{  "expirationFromNowSeconds": {{ ravello.expiration_time_min * 60 }} }'
+        body: '{  "expirationFromNowSeconds": {{ ravello_expiration_time_min * 60 }} }'
         body_format: json
       run_once: true
       with_items: "{{ apps.results }}"

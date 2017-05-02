@@ -2,7 +2,7 @@
 {% set vmtype = hostvars[inventory_hostname]['image'] %}
     "baseVmId": {{ vm.msg.baseVmId }},
     "name" : "{{ inventory_hostname }}",
-    "description": "{{ inventory_hostname }}",
+    "description": {{ ravello_description | default(vm.msg.description) | default(inventory_hostname) | to_json  }},
     "applicationId": {{ vm.msg.applicationId }},
     "legacyMode": false,
     "loadingPercentage": 100,

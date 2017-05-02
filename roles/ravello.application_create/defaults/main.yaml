@@ -6,6 +6,9 @@ ravello_app_desc: Created by Ansible
 ravello_nic_type: virtio
 ravello_create_topology_mask: 255.255.0.0
 
+# -- Other options available
+# ravello_description: "Your description"
+
 ravlinks:
   0: "1.0.1."
   1: "1.1.1."

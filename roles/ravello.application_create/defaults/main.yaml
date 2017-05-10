@@ -5,6 +5,9 @@ ravello_app_name: new app
 ravello_app_desc: Created by Ansible
 ravello_nic_type: virtio
 ravello_create_topology_mask: 255.255.0.0
+ravello_service_supported_protocol: "HTTP|HTTPS|TCP|SSH|UDP|IP"
+ravello_service_supported_regex: '(.*)\/([0-9]+)\/({{ ravello_service_supported_protocol }})'
+ravello_vm_mac: "2c:c2:60:99:{{ '%02d' % id }}"
 
 # -- Other options available
 # ravello_description: "Your description"

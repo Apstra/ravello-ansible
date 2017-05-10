@@ -89,6 +89,11 @@
 {% else %}
                 "staticIpConfig": {
                   "ip": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr(id) | ipaddr('address') }}",
+{% if conn.gw is defined and conn.gw == "first" %}
+                  "gateway": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr('1') | ipaddr('address') }}",
+{% elif conn.gw is defined and conn.gw == "last" %}
+                  "gateway": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr('-2') | ipaddr('address') }}",
+{% endif %}
                   "mask": "{{ ravlinks[conn.link] | ipaddr('netmask') }}"
                 }
 {% endif %}

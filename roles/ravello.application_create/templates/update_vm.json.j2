@@ -88,8 +88,8 @@
                 }
 {% else %}
                 "staticIpConfig": {
-                  "ip": "{{ ravlinks[conn.link] }}{{ hostvars[inventory_hostname].id }}",
-                  "mask": "{{ ravello_create_topology_mask }}"
+                  "ip": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr(id) | ipaddr('address') }}",
+                  "mask": "{{ ravlinks[conn.link] | ipaddr('netmask') }}"
                 }
 {% endif %}
             }

@@ -2,7 +2,7 @@
 {% set vmtype = hostvars[inventory_hostname]['image'] %}
     "baseVmId": {{ vm.msg.baseVmId }},
     "name" : "{{ inventory_hostname }}",
-    "description": "{{ inventory_hostname }}",
+    "description": {{ ravello_description | default(vm.msg.description) | default(inventory_hostname) | to_json  }},
     "applicationId": {{ vm.msg.applicationId }},
     "legacyMode": false,
     "loadingPercentage": 100,
@@ -60,9 +60,18 @@
             "accessPort": true,
             "name" : "{{ "em" ~ int_index }}",
             "device": {
+{% if conn.mac is defined %}
+              "useAutomaticMac": false,
+  {% if conn.mac == "static" %}
+              "mac": "{{ ravello_vm_mac }}:{{ '%02d' % loop.index }}",
+  {% else %}
+              "mac": "{{ conn.mac }}",
+  {% endif %}
+{% else %}
+              "useAutomaticMac": true,
+{% endif %}
                "deviceType": "{{ conn.type | default(ravello_nic_type) }}",
-               "index": {{ loop.index }},
-               "useAutomaticMac": true
+               "index": {{ loop.index }}
             },
             "ipConfig": {
 {% if not conn %}
@@ -70,7 +79,7 @@
                 "hasPublicIp": false,
 {% elif conn.link is defined and conn.link == "dhcp-public" %}
                 "autoIpConfig": {},
-                "hasPublicIp": true,
+                "hasPublicIp": true
 {% elif conn.link is defined and conn.link == "static" %}
                 "staticIpConfig": {
                   "ip": "{{ conn.ip }}",
@@ -79,8 +88,8 @@
                 }
 {% else %}
                 "staticIpConfig": {
-                  "ip": "{{ ravlinks[conn.link] }}{{ hostvars[inventory_hostname].id }}",
-                  "mask": "{{ ravello_create_topology_mask }}"
+                  "ip": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr(id) | ipaddr('address') }}",
+                  "mask": "{{ ravlinks[conn.link] | ipaddr('netmask') }}"
                 }
 {% endif %}
             }
@@ -107,11 +116,17 @@
 {% elif service|lower == 'https' %}
         {
           "name": "HTTPS",
-{#           "ip": "10.25.1.3", #}
           "portRange": "443",
           "protocol": "HTTPS",
-          "external": true,
-          "enableSnat": true
+          "external": true
+        }
+{% elif service|match(ravello_service_supported_regex) %}
+{% set service_detail = service.split('/') %}
+        {
+          "name": "{{ service_detail[0] }}",
+          "portRange": "{{ service_detail[1] }}",
+          "protocol": "{{ service_detail[2] }}",
+          "external": true
         }
 {% endif %}
 {% if not loop.last %},{% endif %}

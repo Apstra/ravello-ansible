@@ -131,6 +131,9 @@
           "name": "{{ service_detail[0] }}",
           "portRange": "{{ service_detail[1] }}",
           "protocol": "{{ service_detail[2] }}",
+{% if service_detail[3] is defined and service_detail[3] == 'true' %}
+          "enableSnat": true,
+{% endif %}
           "external": true
         }
 {% endif %}

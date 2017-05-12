@@ -134,31 +134,3 @@
       when: ravello_topology[inventory_hostname] is defined
       changed_when: true
       tags: [ create ]
-
-###############################
-##  Check VM Connectivity    ##
-###############################
-
-    #
-    # - name: Get VM public FQDN
-    #   uri:
-    #     url: "https://cloud.ravellosystems.com/api/v1/applications/{{ application_id }}/vms/{{ vm.json.id }}/fqdn;deployment"
-    #     method: GET
-    #     user: "{{ ravello_login_username }}"
-    #     password: "{{ ravello_login_password }}"
-    #     force_basic_auth: yes
-    #     status_code: 200
-    #     HEADER_Content-Type: 'application/json'
-    #     HEADER_Accept: 'application/json'
-    #   register: ravello_public_ip
-    #   tags: [ fqdn, check ]
-    #
-    # # - debug: var=fqdn.json.value
-    #
-    # - name: Check ssh connectivity
-    #   wait_for:
-    #     host: "{{ ravello_public_ip.json.value }} "
-    #     port: "{{ ravello_connectivity_port }}"
-    #     timeout: "{{ ravello_connectivity_timeout }}"
-    #   when: ravello_connectivity_check == true
-    #   tags: [ fqdn, check ]

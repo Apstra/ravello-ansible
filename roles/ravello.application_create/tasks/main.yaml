@@ -74,7 +74,7 @@
       run_once: true
       when: ravello_app_documentation is defined
       tags: [ doc ]
-      run_once: true
+
     # - debug: var=doc
     #   tags: [ doc ]
 
@@ -103,7 +103,6 @@
       when:
         - ravello_app_documentation is defined
       tags: [ doc ]
-      run_once: true
 
 ## Check if VM already exist, connect info from Ravello
 #     - name: Get VM ID from Ravello

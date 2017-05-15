@@ -1,7 +1,7 @@
 Role - Create application (ravello.application_create)
 ======================================================
 
-This role will create automatically an application on Ravella based on your ansible project.
+This role will create automatically an application on Ravello based on your ansible project.
 By default, each host in the Ansible inventory will be converted into a VM on ravello.
 
 .. NOTE::

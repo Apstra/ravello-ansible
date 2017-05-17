@@ -161,7 +161,7 @@
         dest: "{{ ravello_fqdn_dir }}//{{ ravello_fqdn_file_name }}.yaml"
         line: "  {{ inventory_hostname }}: {{ item.json.value }}"
         create: yes
-        insertafter: "^{{ item.item.item.item.app_name }}"
+        insertafter: "^{{ item.item.item.item.app_name }}:"
       with_items: "{{ public_ip.results }}"
       tags: [ fqdn ]
 

@@ -1,15 +1,15 @@
 {
 {% set vmtype = hostvars[inventory_hostname]['image'] %}
-    "baseVmId": {{ vm.msg.baseVmId }},
+    "baseVmId": {{ vm_data.baseVmId }},
     "name" : "{{ inventory_hostname }}",
-    "description": {{ ravello_description | default(vm.msg.description) | default(inventory_hostname) | to_json  }},
-    "applicationId": {{ vm.msg.applicationId }},
+    "description": {{ ravello_vm_description | default(vm_data.description) | default(inventory_hostname) | to_json  }},
+    "applicationId": {{ vm_data.applicationId }},
     "legacyMode": false,
     "loadingPercentage": 100,
     "loadingStatus": "DONE",
     "vmOrderGroupId": 1,
-    "creationTime": {{ vm.msg.creationTime }},
-    "id": {{ vm.msg.id }},
+    "creationTime": {{ vm_data.creationTime }},
+    "id": {{ vm_data.id }},
     "stopTimeOut": 600,
     "powerOffOnStopTimeOut" : false,
 {% if ravello_key_pair is defined %}
@@ -23,11 +23,11 @@
 {% endif %}
     "memorySize": {
       "unit": "GB",
-      "value": {{ vm.msg.memorySize.value }}
+      "value": {{ vm_data.memorySize.value }}
     },
-    "numCpus": {{ vm.msg.numCpus }},
+    "numCpus": {{ vm_data.numCpus }},
     "hardDrives": [
-{% for drive in vm.msg.hardDrives -%}
+{% for drive in vm_data.hardDrives -%}
       {
 {% if drive.boot == True %}
           "boot": true,

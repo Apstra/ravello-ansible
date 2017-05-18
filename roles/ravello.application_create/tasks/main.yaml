@@ -57,6 +57,7 @@
       when: app.found == True
       tags: [ create, doc ]
       run_once: true
+
 #####################################################
 ##  Create the documentation for the application   ##
 #####################################################
@@ -105,16 +106,26 @@
       tags: [ doc ]
 
 ## Check if VM already exist, connect info from Ravello
-#     - name: Get VM ID from Ravello
-#       ravello_get_id:
-#         application_id: "{{ app.json.id }}"
-#         resource_name: "{{ inventory_hostname }}"
-#         resource_type: vms
-#         user: "{{ ravello_login_username }}"
-#         password: "{{ ravello_login_password }}"
-#       register: vm
-#       tags: [ create, fqdn ]
-#       when: app.found == True
+    - name: Get VM ID from Ravello
+      ravello_get_id:
+        application_id: "{{ application_id }}"
+        resource_name: "{{ inventory_hostname }}"
+        resource_type: vms
+        user: "{{ ravello_login_username }}"
+        password: "{{ ravello_login_password }}"
+      register: vm
+
+    - name: Set VM ID variable
+      set_fact:
+        vm_id: "{{ vm.json.id }}"
+      when: vm.found == True
+
+    - name: Set VM DATA variable
+      set_fact:
+        vm_data: "{{ vm.json }}"
+      when: vm.found == True
+
+    # - debug: var=vm
 
 ######################################
 ## Get baseVMid Number from Ravello
@@ -126,7 +137,7 @@
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: image
-      #when: vm.found == False
+      when: vm.found == False
       tags: [ create ]
 
 #    - debug: var=vm
@@ -140,7 +151,9 @@
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: keypair
-      when: ravello_key_pair is defined
+      when:
+        - vm.found == False
+        - ravello_key_pair is defined
       tags: [ create ]
 
 #################################
@@ -152,21 +165,33 @@
         baseVmId: "{{ image.json.baseVmId }}"
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
-      register: vm
-  #    when: vm.found == False
+      register: newvm
+      when: vm.found == False
       tags: [ create, fqdn ]
+
+    - name: Set VM ID variable
+      set_fact:
+        vm_id: "{{ newvm.json.id }}"
+      when: vm.found == False
+
+    - name: Set VM DATA variable
+      set_fact:
+        vm_data: "{{ newvm.json }}"
+      when: vm.found == False
 
 #################################
 ##   Update Network Topology   ##
 #################################
     - name: Render Template to Update VM
-      template: src=update_vm.json.j2 dest={{ ravello_tmp_dir }}/update_{{ inventory_hostname }}_vm.json
+      template:
+        src: update_vm.json.j2
+        dest: "{{ ravello_tmp_dir }}/update_{{ inventory_hostname }}_vm.json"
       when: ravello_topology[inventory_hostname] is defined
       tags: [ create ]
 
     - name: Update VM in Application
       uri:
-        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ application_id }}/vms/{{ vm.msg.id }}"
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ application_id }}/vms/{{ vm_id }}"
         method: PUT
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"

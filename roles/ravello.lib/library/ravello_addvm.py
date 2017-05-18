@@ -23,7 +23,7 @@ def main():
             appId = dict(required = True, default = None),
             baseVmId = dict(required = True, default = None),
             user = dict(required = True, default = None),
-            password = dict(required = True, default = None),
+            password = dict(required = True, no_log = True, default = None),
         ),
         supports_check_mode = True
     )

@@ -30,13 +30,11 @@
         status_code: 202
         HEADER_Content-Type: 'application/json'
         HEADER_Accept: 'application/json'
-        body: >
-          {
-              "preferredCloud": "{{ ravello_deploy_topology_cloud }}",
-              "preferredRegion": "{{ ravello_deploy_topology_region }}",
-              "optimizationLevel": "{{ ravello_deploy_topology_optimization }}",
-              "startAllVms": "{{ ravello_deploy_topology_start_all }}"
-          }
+        body:
+          preferredCloud: "{{ ravello_deploy_topology_cloud }}"
+          preferredRegion: "{{ ravello_deploy_topology_region }}"
+          optimizationLevel: "{{ ravello_deploy_topology_optimization }}"
+          startAllVms: "{{ ravello_deploy_topology_start_all }}"
         body_format: json
       run_once: true
       when: not app.json.published

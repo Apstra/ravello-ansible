@@ -23,6 +23,13 @@
 ###############################
 ##  Create the application   ##
 ###############################
+    - name: Create Vm Order Group ( if defined )
+      set_fact:
+        ravello_vm_order_groups_list: "{{ ravello_vm_order_groups_list }} + [ {'id': {{ item.value.id }}, 'order': {{ item.value.order }}, 'name': '{{ item.key }}', 'delay': {{ item.value.delay | default( ravello_vm_order_groups_default_delay )}} } ]"
+      with_dict: "{{ ravello_vm_order_groups }}"
+      tags: [ create, doc, test ]
+      run_once: true
+
     - name: Create Application on Ravello (if not present)
       uri:
         url: "https://cloud.ravellosystems.com/api/v1/applications"
@@ -36,7 +43,8 @@
         body:
           name: "{{ ravello_app_name }}"
           description: "{{ ravello_app_desc }}"
-          design: {}
+          design:
+            vmOrderGroups: "{{ ravello_vm_order_groups_list }}"
         body_format: json
       register: newapp
       run_once: true
@@ -76,13 +84,12 @@
       when: ravello_app_documentation is defined
       tags: [ doc ]
 
-    # - debug: var=doc
-    #   tags: [ doc ]
-
     - name: Check if Documentation already exist
       set_fact:
         ravello_doc_method: POST
-      when: doc.status == 404
+      when:
+        - ravello_app_documentation is defined
+        - doc.status == 404
       tags: [ doc ]
       run_once: true
 
@@ -140,7 +147,6 @@
       when: vm.found == False
       tags: [ create ]
 
-#    - debug: var=vm
 ######################################
 ## Get id for Keypair from Ravello
 ######################################
@@ -171,12 +177,12 @@
 
     - name: Set VM ID variable
       set_fact:
-        vm_id: "{{ newvm.json.id }}"
+        vm_id: "{{ newvm.msg.id }}"
       when: vm.found == False
 
     - name: Set VM DATA variable
       set_fact:
-        vm_data: "{{ newvm.json }}"
+        vm_data: "{{ newvm.msg }}"
       when: vm.found == False
 
 #################################

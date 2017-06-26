@@ -7,10 +7,12 @@
     "legacyMode": false,
     "loadingPercentage": 100,
     "loadingStatus": "DONE",
-    "vmOrderGroupId": 1,
+    "vmOrderGroupId": {{ ravello_vm_order_group_id | default(vm_data.vmOrderGroupId) | default('1') | int }},
     "creationTime": {{ vm_data.creationTime }},
     "id": {{ vm_data.id }},
-    "stopTimeOut": 600,
+{% if vm_data.stopTimeOut is defined %}
+    "stopTimeOut": {{ vm_data.stopTimeOut }},
+{% endif %}
     "powerOffOnStopTimeOut" : false,
 {% if ravello_key_pair is defined %}
     "supportsCloudInit": true,

@@ -46,8 +46,9 @@
       tags: [ fqdn ]
 
     - name: Check ssh connectivity
-      wait_for:
-        host: "{{ ravello_public_ip.json.value }} "
+      local_action:
+        module: wait_for
+        host: "{{ ravello_public_ip.json.value }}"
         port: "{{ ravello_connectivity_port }}"
         timeout: "{{ ravello_connectivity_timeout }}"
       when:

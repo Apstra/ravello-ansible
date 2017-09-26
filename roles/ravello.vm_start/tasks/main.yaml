@@ -4,7 +4,8 @@
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ ravello_app_name }}"
         resource_type: applications
         user: "{{ ravello_login_username }}"
@@ -13,15 +14,13 @@
       run_once: true
       tags: [ deploy, start ]
 
-    # - debug: var=app
-    #   run_once: true
-
 ###############################
 ##  Deploy the application   ##
 ###############################
 
     - name: Deploy Ravello Application
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/publish"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -45,7 +44,8 @@
 ########################################
 
     - name: Set Application Expiration time
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/setExpiration"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -64,7 +64,8 @@
 ## Launch VMs one by one       ##
 #################################
     - name: Get VM ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_type: vms
         application_id: "{{ app.json.id }}"
         resource_name: "{{ inventory_hostname }}"
@@ -73,9 +74,9 @@
       register: vm
       tags: [ start ]
 
-#    - debug: var=vm
     - name: Start VM
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/start"
         method: POST
         user: "{{ ravello_login_username }}"

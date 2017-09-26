@@ -3,7 +3,8 @@
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_type: applications
         resource_name: "{{ item.app_name }}"
         user: "{{ ravello_login_username }}"
@@ -17,7 +18,8 @@
 ###############################
 
     - name: Start all VMs in Application on Ravello
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/start"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -31,7 +33,8 @@
       with_items: "{{ apps.results }}"
 
     - name: Set Application Expiration time
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/setExpiration"
         method: POST
         user: "{{ ravello_login_username }}"

@@ -3,35 +3,36 @@
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ ravello_app_name }}"
         resource_type: applications
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: app
       run_once: true
-      tags:
-        - fqdn
+      tags: [ fqdn ]
 
 ###############################
 ## Get VM ID       ###
 ###############################
     - name: Get VM ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_type: vms
         application_id: "{{ app.json.id }}"
         resource_name: "{{ inventory_hostname }}"
         user: "{{ ravello_login_username }}"
         password: "{{ ravello_login_password }}"
       register: vm
-      tags:
-        - fqdn
+      tags: [ fqdn ]
 
 ###############################
 ##  Check VM Connectivity    ##
 ###############################
     - name: Get VM public FQDN
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/fqdn;deployment"
         method: GET
         user: "{{ ravello_login_username }}"
@@ -42,8 +43,7 @@
         HEADER_Accept: 'application/json'
       register: ravello_public_ip
       when: vm.json is defined
-      tags:
-        - fqdn
+      tags: [ fqdn ]
 
     - name: Check ssh connectivity
       wait_for:
@@ -53,5 +53,4 @@
       when:
         - ravello_connectivity_check == true
         - vm.json is defined
-      tags:
-        - fqdn
+      tags: [ fqdn ]

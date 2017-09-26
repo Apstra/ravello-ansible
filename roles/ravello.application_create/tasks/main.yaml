@@ -3,7 +3,10 @@
 ## Check tmp dir            ###
 ###############################
     - name: Create tmp directory
-      file: path={{ ravello_tmp_dir }} state=directory
+      local_action:
+        module: file 
+        path: "{{ ravello_tmp_dir }}" 
+        state: directory
       run_once: True
       tags: [ create ]
 
@@ -11,7 +14,8 @@
 ## Get Application ID       ###
 ###############################
     - name: Check if application exist
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ ravello_app_name }}"
         resource_type: applications
         user: "{{ ravello_login_username }}"
@@ -31,7 +35,8 @@
       run_once: true
 
     - name: Create Application on Ravello (if not present)
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -70,7 +75,8 @@
 ##  Create the documentation for the application   ##
 #####################################################
     - name: Get Documentation for Application
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{application_id}}/documentation"
         method: GET
         user: "{{ ravello_login_username }}"
@@ -94,7 +100,8 @@
       run_once: true
 
     - name: Create Documentation for Application
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{application_id}}/documentation"
         method: "{{ ravello_doc_method | default('PUT') }}"
         user: "{{ ravello_login_username }}"
@@ -114,7 +121,8 @@
 
 ## Check if VM already exist, connect info from Ravello
     - name: Get VM ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         application_id: "{{ application_id }}"
         resource_name: "{{ inventory_hostname }}"
         resource_type: vms
@@ -132,13 +140,12 @@
         vm_data: "{{ vm.json }}"
       when: vm.found == True
 
-    # - debug: var=vm
-
 ######################################
 ## Get baseVMid Number from Ravello
 ######################################
     - name: Get Image ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ ravello_image }}"
         resource_type: images
         user: "{{ ravello_login_username }}"
@@ -151,7 +158,8 @@
 ## Get id for Keypair from Ravello
 ######################################
     - name: Get Key Pair ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_type: keypairs
         resource_name: "{{ ravello_key_pair }}"
         user: "{{ ravello_login_username }}"
@@ -166,7 +174,8 @@
 ## Add VMs to the application  ##
 #################################
     - name: Add VM to Application
-      ravello_addvm:
+      local_action:
+        module: ravello_addvm
         appId: "{{ application_id }}"
         baseVmId: "{{ image.json.baseVmId }}"
         user: "{{ ravello_login_username }}"
@@ -189,14 +198,16 @@
 ##   Update Network Topology   ##
 #################################
     - name: Render Template to Update VM
-      template:
+      local_action:
+        module: template
         src: update_vm.json.j2
         dest: "{{ ravello_tmp_dir }}/update_{{ inventory_hostname }}_vm.json"
       when: ravello_topology[inventory_hostname] is defined
       tags: [ create ]
 
     - name: Update VM in Application
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ application_id }}/vms/{{ vm_id }}"
         method: PUT
         user: "{{ ravello_login_username }}"

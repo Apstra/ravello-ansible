@@ -3,7 +3,8 @@
 ## Get Blueprint ID         ###
 ###############################
     - name: Get Blueprint ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ ravello_blueprint }}"
         resource_type: blueprints
         user: "{{ ravello_login_username }}"
@@ -16,7 +17,8 @@
 ##  Create multiple application from Blueprint     ##
 #####################################################
     - name: Create Applications from Blueprint
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -40,7 +42,8 @@
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello for each App
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ item.app_name }}"
         resource_type: applications
         user: "{{ ravello_login_username }}"
@@ -50,15 +53,12 @@
       with_items: "{{ ravello_app_list }}"
       tags: [ deploy, fqdn, token, inventory ]
 
-    # - debug: var=apps
-    #   run_once: true
-    #   tags: [ deploy, debug, fqdn, token ]
-
 #######################################################
 ##  Deploy Application(s)                            ##
 #######################################################
     - name: Deploy Ravello Application(s)
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/publish"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -84,7 +84,8 @@
 ##  Set application Expiration time   ##
 ########################################
     - name: Set Application Expiration time
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}/setExpiration"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -105,7 +106,8 @@
 ## Get VM ID                ###
 ###############################
     - name: Get VM ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_type: vms
         application_id: "{{ item.json.id }}"
         resource_name: "{{ inventory_hostname }}"
@@ -115,12 +117,12 @@
       with_items: "{{ apps.results }}"
       tags: [ fqdn, inventory ]
 
-    # - debug: var=vms
 ###############################
 ##  Check VM Connectivity    ##
 ###############################
     - name: Get VM Public FQDN
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.invocation.module_args.application_id }}/vms/{{ item.json.id }}/fqdn;deployment"
         method: GET
         user: "{{ ravello_login_username }}"
@@ -133,21 +135,23 @@
       with_items: "{{ vms.results }}"
       tags: [ fqdn, inventory ]
 
-    # - debug: var=public_ip
-    #   tags: [ fqdn ]
 
 #######################################
 ##  Create file with all VMs info    ##
 #######################################
 
     - name: FQDN - Delete previous file
-      file: path={{ ravello_fqdn_dir }}/{{ ravello_fqdn_file_name }}.yaml state=absent
+      local_action:
+        module: file 
+        path: "{{ ravello_fqdn_dir }}/{{ ravello_fqdn_file_name }}.yaml"
+        state: absent
       tags: [ fqdn ]
       run_once: true
 
     # Add a line to a file if it does not exist, without passing regexp
     - name: FQDN - Create applications name in file
-      lineinfile:
+      local_action:
+        module: lineinfile
         dest: "{{ ravello_fqdn_dir }}/{{ ravello_fqdn_file_name }}.yaml"
         line: "{{ item.item.item.item.app_name }}:"
         create: yes
@@ -156,8 +160,8 @@
       run_once: true
 
     - name: FQDN - Add VMs name to file
-      lineinfile:
-        # dest: "apps/{{ item.item.item.item.app_name }}/fqdn.yaml"
+      local_action:
+        module: lineinfile
         dest: "{{ ravello_fqdn_dir }}//{{ ravello_fqdn_file_name }}.yaml"
         line: "  {{ inventory_hostname }}: {{ item.json.value }}"
         create: yes
@@ -170,19 +174,24 @@
 ###########################################
 
     - name: INV - Check if ravello_inventory_dir exist
-      file: path={{ ravello_inventory_dir }} state=directory
+      local_action:
+        module: file 
+        path: "{{ ravello_inventory_dir }}"
+        state: directory
       tags: [ inventory ]
       run_once: true
 
     - name: INV - Cleanup previous inventory
-      template:
+      local_action:
+        module: template
         src: "{{ ravello_inventory_template }}"
         dest: "{{ ravello_inventory_dir }}/{{ ravello_inventory_file_name }}.ini"
       tags: [ inventory ]
       run_once: true
 
     - name: INV - Create group name in file
-      lineinfile:
+      local_action:
+        module: lineinfile
         dest: "{{ ravello_inventory_dir }}/{{ ravello_inventory_file_name }}.ini"
         line: "[{{ inventory_hostname }}]"
         create: yes
@@ -190,7 +199,8 @@
       tags: [ inventory ]
 
     - name: INV - Add VMs name to inv
-      lineinfile:
+      local_action:
+        module: lineinfile
         dest: "{{ ravello_inventory_dir }}/{{ ravello_inventory_file_name }}.ini"
         line: "{{ item.json.value }}"
         create: yes
@@ -203,7 +213,8 @@
 ##########################################
 
     - name: TOKEN - Create Ephemeral Token for Each Applications
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/ephemeralAccessTokens"
         method: POST
         user: "{{ ravello_login_username }}"
@@ -240,17 +251,17 @@
       run_once: true
       tags: [ token ]
 
-    # - debug: var=tokens
-    #   run_once: true
-    #   tags: [ token ]
-
     - name: TOKEN - Delete previous user token file
-      file: path={{ ravello_token_dir }}/{{ ravello_token_file_name }}.yaml state=absent
+      local_action:
+        module: file 
+        path: "{{ ravello_token_dir }}/{{ ravello_token_file_name }}.yaml" 
+        state: absent
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add User URLs to file
-      lineinfile:
+      local_action:
+        module: lineinfile
         dest: "{{ ravello_token_dir }}/{{ ravello_token_file_name }}.yaml"
         line: "{{ item.item.item.app_name }}: https://access.ravellosystems.com/simple/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes
@@ -260,13 +271,17 @@
       run_once: true
 
     - name: TOKEN - Delete previous admin token file
-      file: path={{ ravello_token_dir }}/{{ ravello_token_file_name }}_admin.yaml state=absent
+      local_action:
+        module: file 
+        path: "{{ ravello_token_dir }}/{{ ravello_token_file_name }}_admin.yaml" 
+        state: absent
       when: ravello_token_create_admin_url == true
       tags: [ token ]
       run_once: true
 
     - name: TOKEN - Add Ravello URLs to file
-      lineinfile:
+      local_action:
+        module: lineinfile
         dest: "{{ ravello_token_dir }}/{{ ravello_token_file_name }}_admin.yaml"
         line: "{{ item.item.item.app_name }}: https://cloud.ravellosystems.com/#/{{ item.json.token }}/apps/{{ item.item.json.id}}"
         create: yes

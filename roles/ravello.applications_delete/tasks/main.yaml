@@ -3,7 +3,8 @@
 ## Get Application ID       ###
 ###############################
     - name: Get App ID from Ravello
-      ravello_get_id:
+      local_action:
+        module: ravello_get_id
         resource_name: "{{ item.app_name }}"
         resource_type: applications
         user: "{{ ravello_login_username }}"
@@ -17,7 +18,8 @@
 ###############################
 
     - name: Delete Application on Ravello
-      uri:
+      local_action:
+        module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ item.json.id }}"
         method: DELETE
         user: "{{ ravello_login_username }}"

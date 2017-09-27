@@ -20,7 +20,7 @@ def main():
   module = AnsibleModule(
     argument_spec = dict(
       user = dict(required = False, default = None),
-      password = dict(required = False, default = None),
+      password = dict(required = False, no_log = True, default = None),
       token = dict(required = False, default = None),
       resource_type = dict(required=True, default = None,
                            choices=['applications',

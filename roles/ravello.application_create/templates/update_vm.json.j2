@@ -1,16 +1,18 @@
 {
 {% set vmtype = hostvars[inventory_hostname]['image'] %}
-    "baseVmId": {{ vm.msg.baseVmId }},
+    "baseVmId": {{ vm_data.baseVmId }},
     "name" : "{{ inventory_hostname }}",
-    "description": {{ ravello_description | default(vm.msg.description) | default(inventory_hostname) | to_json  }},
-    "applicationId": {{ vm.msg.applicationId }},
+    "description": {{ ravello_vm_description | default(vm_data.description) | default(inventory_hostname) | to_json  }},
+    "applicationId": {{ vm_data.applicationId }},
     "legacyMode": false,
     "loadingPercentage": 100,
     "loadingStatus": "DONE",
-    "vmOrderGroupId": 1,
-    "creationTime": {{ vm.msg.creationTime }},
-    "id": {{ vm.msg.id }},
-    "stopTimeOut": 600,
+    "vmOrderGroupId": {{ ravello_vm_order_group_id | default(vm_data.vmOrderGroupId) | default('1') | int }},
+    "creationTime": {{ vm_data.creationTime }},
+    "id": {{ vm_data.id }},
+{% if vm_data.stopTimeOut is defined %}
+    "stopTimeOut": {{ vm_data.stopTimeOut }},
+{% endif %}
     "powerOffOnStopTimeOut" : false,
 {% if ravello_key_pair is defined %}
     "supportsCloudInit": true,
@@ -23,11 +25,11 @@
 {% endif %}
     "memorySize": {
       "unit": "GB",
-      "value": {{ vm.msg.memorySize.value }}
+      "value": {{ vm_data.memorySize.value }}
     },
-    "numCpus": {{ vm.msg.numCpus }},
+    "numCpus": {{ vm_data.numCpus }},
     "hardDrives": [
-{% for drive in vm.msg.hardDrives -%}
+{% for drive in vm_data.hardDrives -%}
       {
 {% if drive.boot == True %}
           "boot": true,
@@ -89,6 +91,11 @@
 {% else %}
                 "staticIpConfig": {
                   "ip": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr(id) | ipaddr('address') }}",
+{% if conn.gw is defined and conn.gw == "first" %}
+                  "gateway": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr('1') | ipaddr('address') }}",
+{% elif conn.gw is defined and conn.gw == "last" %}
+                  "gateway": "{{ ravlinks[conn.link] | ipaddr('net') | ipaddr('-2') | ipaddr('address') }}",
+{% endif %}
                   "mask": "{{ ravlinks[conn.link] | ipaddr('netmask') }}"
                 }
 {% endif %}
@@ -126,6 +133,9 @@
           "name": "{{ service_detail[0] }}",
           "portRange": "{{ service_detail[1] }}",
           "protocol": "{{ service_detail[2] }}",
+{% if service_detail[3] is defined and service_detail[3] == 'true' %}
+          "enableSnat": true,
+{% endif %}
           "external": true
         }
 {% endif %}

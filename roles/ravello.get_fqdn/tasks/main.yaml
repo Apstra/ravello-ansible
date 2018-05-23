@@ -45,7 +45,7 @@
       when: vm.json is defined
       tags: [ fqdn ]
 
-   - name: Get VM public FQDN
+   - name: Get VM public IP
       local_action:
         module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/publicIps;deployment"

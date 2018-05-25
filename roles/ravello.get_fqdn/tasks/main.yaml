@@ -30,7 +30,7 @@
 ###############################
 ##  Check VM Connectivity    ##
 ###############################
-   - name: Get VM public FQDN
+    - name: Get VM public FQDN
       local_action:
         module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/fqdn;deployment"
@@ -45,7 +45,7 @@
       when: vm.json is defined
       tags: [ fqdn ]
 
-   - name: Get VM public IP
+    - name: Get VM public IP
       local_action:
         module: uri
         url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/publicIps;deployment"
@@ -60,7 +60,7 @@
       when: vm.json is defined
       tags: [ fqdn ]
 
-   - name: Check ssh connectivity
+    - name: Check ssh connectivity
       local_action:
         module: wait_for
         host: "{{ ravello_public_ip.json.value }}"
